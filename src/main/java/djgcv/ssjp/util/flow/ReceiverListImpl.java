@@ -3,7 +3,8 @@ package djgcv.ssjp.util.flow;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class ReceiverListImpl<T, R extends Receiver<T>> implements ReceiverList<R> {
+public class ReceiverListImpl<T, R extends Receiver<? super T>> implements
+    ReceiverList<R> {
   private final Collection<R> receivers = new CopyOnWriteArrayList<R>();
 
   @Override
@@ -27,7 +28,7 @@ public class ReceiverListImpl<T, R extends Receiver<T>> implements ReceiverList<
   }
 
   protected void propagateAll(T value) {
-    for (Receiver<T> receiver : getReceivers()) {
+    for (Receiver<? super T> receiver : getReceivers()) {
       receiver.receive(value);
     }
   }
