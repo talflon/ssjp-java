@@ -25,10 +25,10 @@ public class InputterTest {
         assertTrue("Received value twice", future.set(value));
       }
     };
-    inputter.appendReceiver(receiver);
+    inputter.getReceiverList().appendReceiver(receiver);
     inputter.inputOneValue();
     assertEquals(value, future.get(1, TimeUnit.SECONDS));
-    inputter.removeReceiver(receiver);
+    inputter.getReceiverList().removeReceiver(receiver);
   }
 
   @Test
