@@ -1,6 +1,6 @@
 package djgcv.ssjp.util.flow;
 
-public class HandlerPipeImpl<T> extends PipeImpl<T, Handler<? super T>> implements HandlerPipe<T> {
+public class HandlerPipeImpl<T> extends AbstractGenericPipe<T, Handler<? super T>> implements HandlerPipe<T> {
   @Override
   public Handler<? super T> getInput() {
     return input;

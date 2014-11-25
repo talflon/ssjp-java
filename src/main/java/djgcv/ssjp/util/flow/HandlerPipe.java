@@ -1,5 +1,5 @@
 package djgcv.ssjp.util.flow;
 
-public interface HandlerPipe<T> extends Pipe<T, Handler<? super T>> {
+public interface HandlerPipe<T> extends GenericPipe<T, Handler<? super T>> {
 
 }
