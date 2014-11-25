@@ -16,7 +16,7 @@ public class JsonObjectOutputterTest extends BaseJsonObjectIOTest {
   @Before
   public void setUp() throws Exception {
     bytesOut = new ByteArrayOutputStream();
-    jsonOut = new JsonObjectOutputter(mapper.getFactory(), bytesOut);
+    jsonOut = new JsonObjectOutputter(mapper.getFactory(), bytesOut, false);
   }
 
   @Test

@@ -27,7 +27,7 @@ public class ReceiverListImpl<T, R extends Receiver<? super T>> implements
     return receivers;
   }
 
-  protected void propagateAll(T value) {
+  public void propagateAll(T value) {
     for (Receiver<? super T> receiver : getReceivers()) {
       receiver.receive(value);
     }

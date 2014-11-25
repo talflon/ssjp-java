@@ -32,7 +32,7 @@ abstract class BaseJsonObjectIOTest {
 
   static JsonObjectInputter getInputter(byte[] bytes) throws IOException {
     ByteArrayInputStream bytesIn = new ByteArrayInputStream(bytes);
-    return new JsonObjectInputter(mapper.getFactory(), bytesIn);
+    return new JsonObjectInputter(mapper.getFactory(), bytesIn, false);
   }
 
   static void inputAndCheckOne(JsonObjectInputter jsonIn, ObjectNode value)

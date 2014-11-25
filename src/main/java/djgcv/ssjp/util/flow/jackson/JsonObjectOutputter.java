@@ -12,9 +12,9 @@ import djgcv.ssjp.util.flow.io.Outputter;
 public class JsonObjectOutputter extends Outputter<ObjectNode> {
   private final JsonGenerator generator;
 
-  public JsonObjectOutputter(JsonFactory factory, OutputStream outputStream)
-      throws IOException {
-    super(outputStream);
+  public JsonObjectOutputter(JsonFactory factory, OutputStream outputStream,
+      boolean manageOutputStream) throws IOException {
+    super(outputStream, manageOutputStream);
     this.generator = factory.createGenerator(getOutputStream());
   }
 
@@ -22,5 +22,11 @@ public class JsonObjectOutputter extends Outputter<ObjectNode> {
   protected void outputValue(ObjectNode value) throws IOException {
     generator.writeTree(value);
     generator.writeRaw('\n');
+  }
+
+  @Override
+  protected void performClose() {
+    super.performClose();
+    closeQuietly(generator);
   }
 }

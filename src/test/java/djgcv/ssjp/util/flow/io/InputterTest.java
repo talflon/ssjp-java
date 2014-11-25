@@ -35,7 +35,7 @@ public class InputterTest {
   public void testInputOneValue() throws Exception {
     byte value = (byte) 'Q';
     InputStream inputStream = new ByteArrayInputStream(new byte[] { value });
-    Inputter<Byte> inputter = new Inputter<Byte>(inputStream) {
+    Inputter<Byte> inputter = new Inputter<Byte>(inputStream, false) {
       @Override
       protected Byte readOneValue() throws IOException {
         int value = getInputStream().read();

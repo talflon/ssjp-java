@@ -12,14 +12,20 @@ import djgcv.ssjp.util.flow.io.Inputter;
 public class JsonObjectInputter extends Inputter<ObjectNode> {
   private final JsonParser parser;
 
-  public JsonObjectInputter(JsonFactory factory, InputStream inputStream)
-      throws IOException {
-    super(inputStream);
+  public JsonObjectInputter(JsonFactory factory, InputStream inputStream,
+      boolean manageInputStream) throws IOException {
+    super(inputStream, manageInputStream);
     parser = factory.createParser(getInputStream());
   }
 
   @Override
   protected ObjectNode readOneValue() throws IOException {
     return parser.readValueAsTree();
+  }
+
+  @Override
+  protected void performClose() {
+    super.performClose();
+    closeQuietly(parser);
   }
 }

@@ -18,7 +18,7 @@ public class OutputterTest {
   @Test
   public void testHandle() {
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-    Outputter<Byte> outputter = new Outputter<Byte>(bytesOut) {
+    Outputter<Byte> outputter = new Outputter<Byte>(bytesOut, false) {
       @Override
       protected void outputValue(Byte value) throws IOException {
         getOutputStream().write(value);
@@ -33,7 +33,7 @@ public class OutputterTest {
   public void testHandleFlushes() {
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     Outputter<Byte> outputter = new Outputter<Byte>(
-        new BufferedOutputStream(bytesOut)) {
+        new BufferedOutputStream(bytesOut), false) {
       @Override
       protected void outputValue(Byte value) throws IOException {
         getOutputStream().write(value);
@@ -50,7 +50,7 @@ public class OutputterTest {
     final IOException ioException = new IOException("argh");
     final SettableFuture<IOException> result = SettableFuture.create();
     final SettableFuture<Byte> attempted = SettableFuture.create();
-    Outputter<Byte> outputter = new Outputter<Byte>(bytesOut) {
+    Outputter<Byte> outputter = new Outputter<Byte>(bytesOut, false) {
       @Override
       protected void outputValue(Byte value) throws IOException {
         throw ioException;
