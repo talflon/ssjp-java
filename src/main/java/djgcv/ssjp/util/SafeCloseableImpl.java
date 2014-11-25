@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 
 public abstract class SafeCloseableImpl implements SafeCloseable {
   static final Logger log = LoggerFactory.getLogger(SafeCloseableImpl.class);
@@ -16,7 +17,9 @@ public abstract class SafeCloseableImpl implements SafeCloseable {
 
   protected abstract void performClose();
 
-  public abstract ListeningExecutorService getCloseExecutor();
+  protected ListeningExecutorService getCloseExecutor() {
+    return MoreExecutors.sameThreadExecutor();
+  }
 
   protected Logger getLogger() {
     return log;
