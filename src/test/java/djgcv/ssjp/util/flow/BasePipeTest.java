@@ -20,7 +20,7 @@ public abstract class BasePipeTest {
       Pipe<String> pipe = createPipe();
       List<Future<String>> futures = Lists.newArrayList();
       for (int i = 0; i < numReceivers; i++) {
-        FutureReceiver<String> future = new FutureReceiver<String>();
+        FutureHandler<String> future = new FutureHandler<String>();
         futures.add(future);
         pipe.getOutput().appendReceiver(future);
       }

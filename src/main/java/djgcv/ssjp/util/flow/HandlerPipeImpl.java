@@ -9,10 +9,8 @@ public class HandlerPipeImpl<T> extends AbstractGenericPipe<T, Handler<? super T
   private final Handler<T> input = new HandlerImpl<T>() {
     @Override
     public boolean handle(T value) {
-      for (Handler<? super T> handler : getOutput().getReceivers()) {
-        if (handler.handle(value)) {
-          return true;
-        }
+      if (Handlers.tryHandle(getOutput().getReceivers(), value)) {
+        return true;
       }
       return false;
     }
