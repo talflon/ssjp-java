@@ -7,20 +7,24 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public abstract class HandlerMap<K, T> extends HandlerImpl<T> {
-  private final Map<K, HandlerList<T>> map = Maps.newHashMap();
+  private final Map<K, HandlerPipe<T>> map = Maps.newHashMap();
 
   protected abstract K getKey(T value);
 
-  public synchronized HandlerList<T> getHandlers(K key) {
-    HandlerList<T> handlers = map.get(checkNotNull(key));
-    if (handlers == null) {
-      handlers = new HandlerListImpl<T>();
-      map.put(key, handlers);
+  protected synchronized HandlerPipe<T> getPipe(K key) {
+    HandlerPipe<T> pipe = findPipe(key);
+    if (pipe == null) {
+      pipe = new HandlerPipeImpl<T>();
+      map.put(key, pipe);
     }
-    return handlers;
+    return pipe;
   }
 
-  public synchronized HandlerList<T> findHandlers(K key) {
+  public synchronized ReceiverList<Handler<? super T>> getHandlers(K key) {
+    return getPipe(key).getOutput();
+  }
+
+  protected synchronized HandlerPipe<T> findPipe(K key) {
     return map.get(checkNotNull(key));
   }
 
@@ -28,9 +32,9 @@ public abstract class HandlerMap<K, T> extends HandlerImpl<T> {
   public boolean handle(T value) {
     K key = getKey(value);
     if (key != null) {
-      HandlerList<T> handlers = findHandlers(key);
-      if (handlers != null) {
-        return handlers.handle(value);
+      HandlerPipe<T> pipe = findPipe(key);
+      if (pipe != null) {
+        return pipe.getInput().handle(value);
       }
     }
     return false;

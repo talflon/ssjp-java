@@ -2,7 +2,6 @@ package djgcv.ssjp.util.flow;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -44,20 +43,10 @@ public class HandlerMapTest {
   @Test
   public void testGetHandlers() {
     for (int key = 1; key < 5; key++) {
-      HandlerList<String> handlers = handlerMap.getHandlers(key);
+      ReceiverList<Handler<? super String>> handlers = handlerMap.getHandlers(key);
       assertEquals(0, Iterables.size(handlers.getReceivers()));
       handlers.appendReceiver(createDummyHandler(true));
       assertSame(handlers, handlerMap.getHandlers(key));
-    }
-  }
-
-  @Test
-  public void testFindHandlers() {
-    for (int key = 1; key < 5; key++) {
-      assertNull(handlerMap.findHandlers(key));
-      HandlerList<String> handlers = handlerMap.getHandlers(key);
-      handlers.appendReceiver(createDummyHandler(true));
-      assertSame(handlers, handlerMap.findHandlers(key));
     }
   }
 
