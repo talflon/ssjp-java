@@ -26,10 +26,4 @@ public class ReceiverListImpl<T, R extends Receiver<? super T>> implements
   public Iterable<R> getReceivers() {
     return receivers;
   }
-
-  public void propagateAll(T value) {
-    for (Receiver<? super T> receiver : getReceivers()) {
-      receiver.receive(value);
-    }
-  }
 }

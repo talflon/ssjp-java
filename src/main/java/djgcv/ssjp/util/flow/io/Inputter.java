@@ -34,7 +34,10 @@ public abstract class Inputter<T> extends SafeCloseableImpl {
   protected abstract T readOneValue() throws IOException;
 
   public void inputOneValue() throws IOException {
-    receiverList.propagateAll(readOneValue());
+    T value = readOneValue();
+    for (Receiver<? super T> receiver : getReceiverList().getReceivers()) {
+      receiver.receive(value);
+    }
   }
 
   @Override
