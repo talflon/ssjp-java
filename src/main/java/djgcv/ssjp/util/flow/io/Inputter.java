@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import djgcv.ssjp.util.SafeCloseableImpl;
 import djgcv.ssjp.util.flow.Receiver;
+import djgcv.ssjp.util.flow.ReceiverList;
 import djgcv.ssjp.util.flow.ReceiverListImpl;
 
 public abstract class Inputter<T> extends SafeCloseableImpl {
@@ -26,7 +27,7 @@ public abstract class Inputter<T> extends SafeCloseableImpl {
     return inputStream;
   }
 
-  ReceiverListImpl<T, Receiver<? super T>> getReceiverList() {
+  ReceiverList<Receiver<? super T>> getReceiverList() {
     return receiverList;
   }
 
