@@ -1,6 +1,9 @@
 package djgcv.ssjp.util.flow.jackson;
 
+import static org.junit.Assert.assertArrayEquals;
+
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -52,6 +55,22 @@ public class JsonObjectOutputterTest extends BaseJsonObjectIOTest {
     for (ObjectNode value : objects) {
       inputAndCheckOne(getInputter(results[i++].getBytes(Charsets.UTF_8)),
           value);
+    }
+  }
+
+  @Test
+  public void testKeepalive() throws Exception {
+    ObjectNode testValue = mapper.createObjectNode();
+    for (int n = 1; n <= 5; n++) {
+      setUp();
+      for (int i = 0; i < n; i++) {
+        jsonOut.receive(JsonObjectOutputter.KEEPALIVE);
+      }
+      byte[] expected = new byte[n];
+      Arrays.fill(expected, (byte) '\n');
+      assertArrayEquals(expected, bytesOut.toByteArray());
+      jsonOut.receive(testValue);
+      inputAndCheckOne(getInputter(bytesOut.toByteArray()), testValue);
     }
   }
 }

@@ -5,11 +5,15 @@ import java.io.OutputStream;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import djgcv.ssjp.util.flow.io.Outputter;
 
 public class JsonObjectOutputter extends Outputter<ObjectNode> {
+  public static final ObjectNode KEEPALIVE =
+      new ObjectNode(new JsonNodeFactory(false));
+
   private final JsonGenerator generator;
 
   public JsonObjectOutputter(JsonFactory factory, OutputStream outputStream,
@@ -20,8 +24,10 @@ public class JsonObjectOutputter extends Outputter<ObjectNode> {
 
   @Override
   protected void outputValue(ObjectNode value) throws IOException {
-    generator.writeTree(value);
-    generator.writeRaw('\n');
+    if (value != KEEPALIVE) {
+      generator.writeTree(value);
+    }
+    getOutputStream().write('\n');
   }
 
   @Override
