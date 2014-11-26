@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import djgcv.ssjp.util.flow.Demux;
-import djgcv.ssjp.util.flow.Handlers;
-import djgcv.ssjp.util.flow.Node;
 
 public class MessageIdDemux extends Demux<Integer, ObjectNode> {
   private int nextId = 0;
@@ -34,7 +32,7 @@ public class MessageIdDemux extends Demux<Integer, ObjectNode> {
     JsonNode tag = message.get("tag");
     JsonNode idNode = tag.get("id");
     if (idNode.isInt()) {
-      Node.Connection<ObjectNode> connection = getConnection(idNode.asInt());
+      Demux<?, ObjectNode>.Connection connection = getConnection(idNode.asInt());
       if (connection != null) {
         ObjectNode result = message.objectNode();
         result.setAll(message);
@@ -43,9 +41,7 @@ public class MessageIdDemux extends Demux<Integer, ObjectNode> {
         } else {
           result.remove("tag");
         }
-        if (Handlers.tryHandle(connection.getOutput().getReceivers(), result)) {
-          return true;
-        }
+        return connection.getOutputPipe().getInput().handle(result);
       }
     }
     return false;

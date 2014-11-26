@@ -5,23 +5,29 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 public class DemuxTest {
-
-  private static Demux<?, ?> createUselessDemux() {
-    return new Demux<Object, Object>() {
+  private static <K, T> Demux<K, T> createUselessDemux() {
+    return new Demux<K, T>() {
       @Override
-      public boolean handle(Object value) {
+      public boolean handle(T value) {
         return false;
       }
 
       @Override
-      protected Object muxValue(Object value, Object key) {
+      protected T muxValue(T value, K key) {
         return value;
       }
 
       @Override
-      protected Object getNextKey() {
+      protected K getNextKey() {
         return null;
       }
+    };
+  }
+
+  private static <T> Receiver<T> createUselessReceiver() {
+    return new Receiver<T>() {
+      @Override
+      public void receive(T value) { }
     };
   }
 
@@ -33,15 +39,15 @@ public class DemuxTest {
 
   @Test
   public void testCloseChild() throws Exception {
-    Demux<?, ?> demux = createUselessDemux();
-    demux.connect().close().get(1, TimeUnit.SECONDS);
+    Demux<?, Object> demux = createUselessDemux();
+    demux.connect(createUselessReceiver()).close().get(1, TimeUnit.SECONDS);
     demux.close().get(1, TimeUnit.SECONDS);
   }
 
   @Test
   public void testCloseWithChild() throws Exception {
-    Demux<?, ?> demux = createUselessDemux();
-    demux.connect();
+    Demux<?, Object> demux = createUselessDemux();
+    demux.connect(createUselessReceiver());
     demux.close().get(1, TimeUnit.SECONDS);
   }
 }

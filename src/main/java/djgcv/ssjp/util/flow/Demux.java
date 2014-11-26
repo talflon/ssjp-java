@@ -14,9 +14,9 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
   private final Map<K, Connection> connections = Maps.newHashMap();
 
   @Override
-  public synchronized Connection connect() {
+  public synchronized Connection connect(Receiver<T> upstream) {
     K key = getNextKey();
-    Connection conn = new Connection(key);
+    Connection conn = new Connection(key, upstream);
     if (isClosing()) throw new IllegalStateException();
     connections.put(key, conn);
     return conn;
@@ -43,7 +43,7 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
 
   public ListenableFuture<T> sendRequest(Receiver<T> upstream, T message) {
     FutureHandler<T> response = new FutureHandler<T>();
-    final Connection conn = connect();
+    final Connection conn = connect(upstream);
     conn.getOutput().appendReceiver(response);
     response.addListener(new Runnable() {
       @Override
@@ -51,38 +51,32 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
         conn.close();
       }
     }, MoreExecutors.sameThreadExecutor());
-    conn.getInput(upstream).receive(message);
+    conn.getInput().receive(message);
     return response;
   }
 
-  class Connection extends SafeCloseableImpl implements Node.Connection<T> {
+  protected class Connection extends EndpointImpl<T> {
     protected final K key;
+    private final Receiver<T> input;
 
-    Connection(K key) {
+    Connection(K key, final Receiver<T> upstream) {
       this.key = key;
-    }
-
-    @Override
-    public Demux<K, T> getParent() {
-      return Demux.this;
-    }
-
-    @Override
-    public Receiver<T> getInput(final Receiver<T> upstream) {
-      return new Receiver<T>() {
+      input = new Receiver<T>() {
         @Override
         public void receive(T value) {
-          upstream.receive(muxValue(value, key));
+          upstream.receive(muxValue(value));
         }
       };
     }
 
-    @Override
-    public ReceiverList<Handler<? super T>> getOutput() {
-      return output;
+    protected T muxValue(T value) {
+      return Demux.this.muxValue(value, key);
     }
 
-    private final ReceiverList<Handler<? super T>> output = new ReceiverListImpl<T, Handler<? super T>>();
+    @Override
+    public Receiver<T> getInput() {
+      return input;
+    }
 
     @Override
     protected void performClose() {
