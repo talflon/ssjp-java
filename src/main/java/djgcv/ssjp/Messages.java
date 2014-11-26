@@ -35,7 +35,7 @@ public class Messages {
     return result;
   }
 
-  private static void setIfNotNull(ObjectNode objectNode, String key,
+  static void setIfNotNull(ObjectNode objectNode, String key,
       JsonNode value) {
     if (value != null) {
       objectNode.set(key, value);
