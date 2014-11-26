@@ -27,7 +27,7 @@ public abstract class Inputter<T> extends SafeCloseableImpl {
     return inputStream;
   }
 
-  ReceiverList<Receiver<? super T>> getReceiverList() {
+  public ReceiverList<Receiver<? super T>> getReceiverList() {
     return receiverList;
   }
 
