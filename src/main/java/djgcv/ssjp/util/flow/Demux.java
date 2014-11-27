@@ -14,7 +14,7 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
   private final Map<K, Connection> connections = Maps.newHashMap();
 
   @Override
-  public synchronized Connection connect(Receiver<T> upstream) {
+  public synchronized Connection connect(Receiver<? super T> upstream) {
     K key = getNextKey();
     Connection conn = new Connection(key, upstream);
     if (isClosing()) throw new IllegalStateException();
@@ -59,7 +59,7 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
     protected final K key;
     private final Receiver<T> input;
 
-    Connection(K key, final Receiver<T> upstream) {
+    Connection(K key, final Receiver<? super T> upstream) {
       this.key = key;
       input = new Receiver<T>() {
         @Override
