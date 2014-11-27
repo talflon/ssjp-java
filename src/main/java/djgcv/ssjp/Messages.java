@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class Messages {
   public static ObjectNode request(ObjectMapper mapper, String path,
       String request) {
-    return mapper.createObjectNode().put("path", path).put("request", request);
+    return mapper.createObjectNode().put("path", path).put("req", request);
   }
 
   public static ObjectNode request(ObjectMapper mapper, String path,
