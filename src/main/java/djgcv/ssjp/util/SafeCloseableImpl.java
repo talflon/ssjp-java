@@ -81,7 +81,7 @@ public abstract class SafeCloseableImpl implements SafeCloseable {
 
   protected CompletionCount checkStillClosing() {
     CompletionCount task = taskRef.get();
-    checkState(task != null);
+    checkState(task != null && !task.isDone());
     return task;
   }
 
