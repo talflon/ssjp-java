@@ -7,9 +7,10 @@ import static org.junit.Assert.fail;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -17,30 +18,32 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
+import djgcv.ssjp.util.ExecutorTestBase;
 import djgcv.ssjp.util.SafeCloseable;
 import djgcv.ssjp.util.flow.FutureHandler;
 import djgcv.ssjp.util.io.SocketPair;
 
-public class SsjpClientServerEndpointTest {
+public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningScheduledExecutorService> {
+  static final Logger log = LoggerFactory.getLogger(SsjpClientServerEndpointTest.class);
+
   ObjectMapper mapper;
-  ListeningScheduledExecutorService executor;
   SocketPair socketPair;
   SsjpServerEndpoint server;
   SsjpClientEndpoint client;
 
+  public SsjpClientServerEndpointTest() {
+    super(MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(5)));
+  }
+
   @Before
   public void setUp() throws Exception {
     mapper = new ObjectMapper();
-    executor = MoreExecutors.listeningDecorator(
-        Executors.newScheduledThreadPool(5));
-    socketPair = new SocketPair(executor);
+    socketPair = new SocketPair(getExecutor());
   }
 
-  @After
-  public void tearDown() throws Exception {
-    if (executor != null) {
-      executor.shutdownNow();
-    }
+  @Override
+  protected void performClose() {
+    super.performClose();
     if (socketPair != null) {
       socketPair.close();
     }
@@ -53,8 +56,8 @@ public class SsjpClientServerEndpointTest {
   }
 
   protected void startConnect() throws Exception {
-    server = new SsjpServerEndpoint(mapper, executor, socketPair.getFirstSocket().get(5, TimeUnit.SECONDS), null);
-    client = new SsjpClientEndpoint(mapper, executor, socketPair.getSecondSocket().get(1, TimeUnit.SECONDS), null);
+    server = new SsjpServerEndpoint(mapper, getExecutor(), socketPair.getFirstSocket().get(5, TimeUnit.SECONDS), null);
+    client = new SsjpClientEndpoint(mapper, getExecutor(), socketPair.getSecondSocket().get(1, TimeUnit.SECONDS), null);
   }
 
   protected void waitConnected() throws Exception {

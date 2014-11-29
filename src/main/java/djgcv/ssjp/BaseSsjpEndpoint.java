@@ -244,6 +244,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
             inputter.inputOneValue();
           }
         } catch (Exception e) {
+          log.debug("Stopped inputting due to exception", e);
           close(e);
         }
       }

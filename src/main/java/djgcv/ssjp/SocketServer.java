@@ -48,6 +48,7 @@ public class SocketServer extends SafeCloseableImpl {
             acceptOne();
           }
         } catch (Exception e) {
+          log.debug("Stopped listening due to exception", e);
           close(e);
         }
       }

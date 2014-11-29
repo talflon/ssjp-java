@@ -12,27 +12,15 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
-public class SafeCloseableImplTest {
-  ListeningExecutorService exec;
-
-  @Before
-  public void setUp() throws Exception {
-    exec = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (exec != null) {
-      exec.shutdownNow();
-    }
+public class SafeCloseableImplTest extends ExecutorTestBase<ListeningExecutorService> {
+  public SafeCloseableImplTest() {
+    super(MoreExecutors.listeningDecorator(Executors.newCachedThreadPool()));
   }
 
   private class SafeCloseableImpl extends djgcv.ssjp.util.SafeCloseableImpl {
@@ -41,7 +29,7 @@ public class SafeCloseableImplTest {
 
     @Override
     public ListeningExecutorService getCloseExecutor() {
-      return exec;
+      return getExecutor();
     }
   }
 
