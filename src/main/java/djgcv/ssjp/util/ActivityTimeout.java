@@ -8,15 +8,12 @@ public abstract class ActivityTimeout implements Runnable {
   private Future<?> taskFuture;
   private long timeout;
 
-  protected ActivityTimeout(long delay, TimeUnit unit, boolean started) {
+  protected ActivityTimeout(long delay, TimeUnit unit) {
     if (delay <= 0) {
       throw new IllegalArgumentException("Delay must be greater than zero: "
           + delay + " " + unit);
     }
     setDefaultTimeout(delay, unit);
-    if (started) {
-      restart();
-    }
   }
 
   public abstract ScheduledExecutorService getExecutor();

@@ -64,6 +64,16 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
         wrapInputStream(callbackInputStream), true);
     outputter = new JsonObjectOutputter(factory,
         wrapOutputStream(callbackOutputStream), true);
+  }
+
+  protected BaseSsjpEndpoint(ObjectMapper mapper,
+      ScheduledExecutorService executor,
+      Socket socket, ObjectNode options) throws IOException {
+    this(mapper, executor, socket.getInputStream(), socket.getOutputStream(),
+        options);
+  }
+
+  public void start() {
     executor.execute(new Runnable() {
       @Override
       public void run() {
@@ -74,13 +84,6 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
         }
       }
     });
-  }
-
-  protected BaseSsjpEndpoint(ObjectMapper mapper,
-      ScheduledExecutorService executor,
-      Socket socket, ObjectNode options) throws IOException {
-    this(mapper, executor, socket.getInputStream(), socket.getOutputStream(),
-        options);
   }
 
   @Override
@@ -116,7 +119,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   public void setInputTimeout(long delay, TimeUnit unit) {
     synchronized (this) {
       if (inputTimeout == null) {
-        inputTimeout = new ActivityTimeout(delay, unit, true) {
+        inputTimeout = new ActivityTimeout(delay, unit) {
           @Override
           public void run() {
             onInputTimeout();
@@ -127,6 +130,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
             return executor;
           }
         };
+        inputTimeout.restart();
         getCallbackInputStream().setCallback(new Runnable() {
           @Override
           public void run() {
@@ -142,7 +146,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   public void setOutputTimeout(long delay, TimeUnit unit) {
     synchronized (this) {
       if (outputTimeout == null) {
-        outputTimeout = new ActivityTimeout(delay, unit, true) {
+        outputTimeout = new ActivityTimeout(delay, unit) {
           @Override
           public void run() {
             onOutputTimeout();
@@ -153,6 +157,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
             return executor;
           }
         };
+        outputTimeout.restart();
         getCallbackOutputStream().setCallback(new Runnable() {
           @Override
           public void run() {

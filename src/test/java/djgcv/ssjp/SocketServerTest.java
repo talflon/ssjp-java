@@ -33,7 +33,7 @@ public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecuto
   SocketServer server;
   MessageIdDemux demux;
   Pipe<ObjectNode> upstream;
-  SsjpEndpoint client;
+  SsjpClientEndpoint client;
 
   public SocketServerTest() {
     super(MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(5)));
@@ -46,9 +46,11 @@ public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecuto
     upstream = new PipeImpl<ObjectNode>();
     serverSocket = new ServerSocket(0);
     server = new SocketServer(mapper, serverSocket, demux, getExecutor(), null, upstream.getInput());
+    server.start();
     Socket socket = new Socket();
     socket.connect(serverSocket.getLocalSocketAddress());
     client = new SsjpClientEndpoint(mapper, getExecutor(), socket, null);
+    client.start();
     client.getInputFuture().get(5, TimeUnit.SECONDS);
   }
 

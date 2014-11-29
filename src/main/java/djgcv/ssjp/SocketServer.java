@@ -39,6 +39,9 @@ public class SocketServer extends SafeCloseableImpl {
     this.executor = executor;
     this.options = options;
     this.upstream = upstream;
+  }
+
+  public void start() {
     executor.execute(new Runnable() {
       @Override
       public void run() {
@@ -89,6 +92,7 @@ public class SocketServer extends SafeCloseableImpl {
         log.debug("Finished connecting");
       }
     });
+    remoteEndpoint.start();
   }
 
   @Override

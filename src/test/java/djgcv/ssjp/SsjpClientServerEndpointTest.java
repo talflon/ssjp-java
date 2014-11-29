@@ -58,6 +58,8 @@ public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningSche
   protected void startConnect() throws Exception {
     server = new SsjpServerEndpoint(mapper, getExecutor(), socketPair.getFirstSocket().get(5, TimeUnit.SECONDS), null);
     client = new SsjpClientEndpoint(mapper, getExecutor(), socketPair.getSecondSocket().get(1, TimeUnit.SECONDS), null);
+    server.start();
+    client.start();
   }
 
   protected void waitConnected() throws Exception {
