@@ -4,7 +4,8 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ActivityCallbackInputStream extends FilterInputStream {
+public class ActivityCallbackInputStream extends FilterInputStream
+    implements ActivityCallbackStream {
   private volatile Runnable callback = null;
 
   public ActivityCallbackInputStream(InputStream in) {
@@ -16,10 +17,12 @@ public class ActivityCallbackInputStream extends FilterInputStream {
     this.callback = callback;
   }
 
+  @Override
   public Runnable getCallback() {
     return callback;
   }
 
+  @Override
   public void setCallback(Runnable callback) {
     this.callback = callback;
   }

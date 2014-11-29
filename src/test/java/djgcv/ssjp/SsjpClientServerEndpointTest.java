@@ -88,7 +88,7 @@ public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningSche
   public void testTimeout() throws Exception {
     startConnect();
     waitConnected();
-    server.setInputTimeout(100, TimeUnit.MILLISECONDS);
+    server.getInputTimeout().set(100, TimeUnit.MILLISECONDS);
     Thread.sleep(20);
     assertFalse(server.isClosing());
     waitClosing(server, 1, TimeUnit.SECONDS);
@@ -98,8 +98,8 @@ public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningSche
   public void testTimeoutDelayedByKeepalive() throws Exception {
     startConnect();
     waitConnected();
-    client.setInputTimeout(200, TimeUnit.MILLISECONDS);
-    server.setOutputTimeout(100, TimeUnit.MILLISECONDS);
+    client.getInputTimeout().set(200, TimeUnit.MILLISECONDS);
+    server.getOutputTimeout().set(100, TimeUnit.MILLISECONDS);
     Thread.sleep(500);
     assertFalse(server.isClosing());
     assertFalse(client.isClosing());
@@ -110,7 +110,7 @@ public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningSche
     startConnect();
     waitConnected();
     ObjectNode message = mapper.createObjectNode();
-    server.setInputTimeout(200, TimeUnit.MILLISECONDS);
+    server.getInputTimeout().set(200, TimeUnit.MILLISECONDS);
     Thread.sleep(150);
     client.getInput().receive(message);
     Thread.sleep(100);

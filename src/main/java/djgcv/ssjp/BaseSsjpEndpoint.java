@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
-import djgcv.ssjp.util.ActivityTimeout;
+import djgcv.ssjp.util.Timeout;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
 import djgcv.ssjp.util.flow.EndpointImpl;
 import djgcv.ssjp.util.flow.FutureHandler;
@@ -34,6 +34,7 @@ import djgcv.ssjp.util.flow.jackson.JsonObjectInputter;
 import djgcv.ssjp.util.flow.jackson.JsonObjectOutputter;
 import djgcv.ssjp.util.io.ActivityCallbackInputStream;
 import djgcv.ssjp.util.io.ActivityCallbackOutputStream;
+import djgcv.ssjp.util.io.ActivityCallbackStream;
 
 abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
     SsjpEndpoint {
@@ -44,11 +45,10 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   private final JsonObjectInputter inputter;
   private final JsonObjectOutputter outputter;
   private final ObjectNode ourOptions;
-  private final ActivityCallbackInputStream callbackInputStream;
-  private final ActivityCallbackOutputStream callbackOutputStream;
   private final SettableFuture<Receiver<? super ObjectNode>> inputFuture =
       SettableFuture.create();
-  private ActivityTimeout inputTimeout, outputTimeout;
+  private final StreamTimeout<ActivityCallbackInputStream> inputTimeout;
+  private final StreamTimeout<ActivityCallbackOutputStream> outputTimeout;
 
   protected BaseSsjpEndpoint(ObjectMapper mapper,
       ScheduledExecutorService executor,
@@ -58,12 +58,24 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
     this.executor = executor;
     ourOptions = options;
     JsonFactory factory = mapper.getFactory();
-    callbackInputStream = new ActivityCallbackInputStream(inputStream);
-    callbackOutputStream = new ActivityCallbackOutputStream(outputStream);
+    inputTimeout = new StreamTimeout<ActivityCallbackInputStream>(
+        new ActivityCallbackInputStream(inputStream)) {
+      @Override
+      protected void onTimeout() {
+        onInputTimeout();
+      }
+    };
+    outputTimeout = new StreamTimeout<ActivityCallbackOutputStream>(
+        new ActivityCallbackOutputStream(outputStream)) {
+      @Override
+      protected void onTimeout() {
+        onOutputTimeout();
+      }
+    };
     inputter = new JsonObjectInputter(factory,
-        wrapInputStream(callbackInputStream), true);
+        wrapInputStream(inputTimeout.getStream()), true);
     outputter = new JsonObjectOutputter(factory,
-        wrapOutputStream(callbackOutputStream), true);
+        wrapOutputStream(outputTimeout.getStream()), true);
   }
 
   protected BaseSsjpEndpoint(ObjectMapper mapper,
@@ -108,68 +120,6 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
     return new BufferedOutputStream(outputStream);
   }
 
-  protected ActivityCallbackInputStream getCallbackInputStream() {
-    return callbackInputStream;
-  }
-
-  protected ActivityCallbackOutputStream getCallbackOutputStream() {
-    return callbackOutputStream;
-  }
-
-  public void setInputTimeout(long delay, TimeUnit unit) {
-    synchronized (this) {
-      if (inputTimeout == null) {
-        inputTimeout = new ActivityTimeout(delay, unit) {
-          @Override
-          public void run() {
-            onInputTimeout();
-          }
-
-          @Override
-          public ScheduledExecutorService getExecutor() {
-            return executor;
-          }
-        };
-        inputTimeout.restart();
-        getCallbackInputStream().setCallback(new Runnable() {
-          @Override
-          public void run() {
-            inputTimeout.restart();
-          }
-        });
-      } else {
-        inputTimeout.setTimeout(delay, unit);
-      }
-    }
-  }
-
-  public void setOutputTimeout(long delay, TimeUnit unit) {
-    synchronized (this) {
-      if (outputTimeout == null) {
-        outputTimeout = new ActivityTimeout(delay, unit) {
-          @Override
-          public void run() {
-            onOutputTimeout();
-          }
-
-          @Override
-          public ScheduledExecutorService getExecutor() {
-            return executor;
-          }
-        };
-        outputTimeout.restart();
-        getCallbackOutputStream().setCallback(new Runnable() {
-          @Override
-          public void run() {
-            outputTimeout.restart();
-          }
-        });
-      } else {
-        outputTimeout.setTimeout(delay, unit);
-      }
-    }
-  }
-
   protected void onInputTimeout() {
     log.info("Closing due to idle input");
     close();
@@ -178,6 +128,28 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   protected void onOutputTimeout() {
     log.debug("Sending keep-alive");
     getInput().receive(JsonObjectOutputter.KEEPALIVE);
+  }
+
+  private abstract class StreamTimeout<S extends ActivityCallbackStream>
+      extends djgcv.ssjp.util.io.StreamTimeout<S> {
+    protected StreamTimeout(S stream) {
+      super(stream);
+    }
+
+    @Override
+    protected ScheduledExecutorService getExecutor() {
+      return BaseSsjpEndpoint.this.executor;
+    }
+  }
+
+  @Override
+  public Timeout getInputTimeout() {
+    return inputTimeout;
+  }
+
+  @Override
+  public Timeout getOutputTimeout() {
+    return outputTimeout;
   }
 
   protected abstract void startHandshake();
@@ -265,19 +237,13 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
 
   @Override
   protected void performClose() {
-    getCallbackInputStream().setCallback(null);
-    getCallbackOutputStream().setCallback(null);
     cleanupSafeCloseable(inputter);
     cleanupSafeCloseable(outputter);
     getCloseFuture().addListener(new Runnable() {
       @Override
       public void run() {
-        if (inputTimeout != null) {
-          inputTimeout.stop();
-        }
-        if (outputTimeout != null) {
-          outputTimeout.stop();
-        }
+        getInputTimeout().stop();
+        getOutputTimeout().stop();
       }
     }, MoreExecutors.sameThreadExecutor());
   }
