@@ -2,6 +2,7 @@ package djgcv.ssjp.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -44,13 +45,13 @@ public class MockScheduledExecutorTest {
   public void testScheduleRunnable() throws Exception {
     Future<?> future = scheduler.schedule(Runnables.doNothing(), 5,
         TimeUnit.SECONDS);
-    assertEquals(0, scheduler.startEvents());
+    assertTrue(scheduler.startEvents().isEmpty());
     assertFalse(future.isDone());
     scheduler.shiftTime(4, TimeUnit.SECONDS);
-    assertEquals(0, scheduler.startEvents());
+    assertTrue(scheduler.startEvents().isEmpty());
     assertFalse(future.isDone());
     scheduler.shiftTime(1, TimeUnit.SECONDS);
-    assertEquals(1, scheduler.startEvents());
+    assertEquals(1, scheduler.startEvents().size());
     future.get(1, TimeUnit.SECONDS);
   }
 }

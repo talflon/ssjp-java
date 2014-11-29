@@ -43,10 +43,10 @@ public class ReschedulerTest {
     scheduler.startEvents();
     assertTrue(future.reschedule(10, TimeUnit.SECONDS));
     scheduler.shiftTime(7, TimeUnit.SECONDS);
-    assertEquals(0, scheduler.startEvents());
+    assertTrue(scheduler.startEvents().isEmpty());
     assertFalse(future.isDone());
     scheduler.shiftTime(3, TimeUnit.SECONDS);
-    assertEquals(1, scheduler.startEvents());
+    assertEquals(1, scheduler.startEvents().size());
     future.get(1, TimeUnit.SECONDS);
   }
 

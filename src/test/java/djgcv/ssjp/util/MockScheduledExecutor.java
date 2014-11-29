@@ -1,11 +1,13 @@
 package djgcv.ssjp.util;
 
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Ticker;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ForwardingExecutorService;
@@ -14,7 +16,7 @@ import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 
-class MockScheduledExecutor extends ForwardingExecutorService implements
+public class MockScheduledExecutor extends ForwardingExecutorService implements
     ListeningScheduledExecutorService {
   private final PriorityQueue<Task<?>> taskQueue = Queues.newPriorityQueue();
   private final ListeningExecutorService delegateExecutor;
@@ -49,16 +51,15 @@ class MockScheduledExecutor extends ForwardingExecutorService implements
     }
   }
 
-  public int startEvents() {
-    int count = 0;
+  public List<ListenableFuture<?>> startEvents() {
+    List<ListenableFuture<?>> futures = Lists.newArrayList();
     synchronized (taskQueue) {
       while (!taskQueue.isEmpty()
           && taskQueue.peek().getDelay(TimeUnit.NANOSECONDS) <= 0) {
-        execute(taskQueue.remove());
-        count++;
+        futures.add(submit(taskQueue.remove()));
       }
     }
-    return count;
+    return futures;
   }
 
   public long startNextEvent(TimeUnit unit) {
@@ -66,7 +67,7 @@ class MockScheduledExecutor extends ForwardingExecutorService implements
     Task<?> task;
     synchronized (taskQueue) {
       if (taskQueue.isEmpty()) {
-        return 0;
+        return Long.MIN_VALUE;
       }
       task = taskQueue.remove();
       remaining = task.finishTime - getTicker().read();
