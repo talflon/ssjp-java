@@ -41,26 +41,26 @@ public class Rescheduler extends ForwardingListeningExecutorService implements
   @Override
   public <V> ReschedulableFuture<V> schedule(final Callable<V> callable,
       long delay, TimeUnit unit) {
-    return new RFuture<V>(delay, unit) {
+    return new RFuture<V>() {
       @Override
       protected ListenableScheduledFuture<V> createDelegateFuture(long delay,
           TimeUnit unit) {
         return Rescheduler.this.delegate().schedule(callable, delay, unit);
       }
-    };
+    }.start(delay, unit);
   }
 
   @SuppressWarnings("rawtypes")
   @Override
   public ReschedulableFuture<?> schedule(final Runnable command, long delay,
       TimeUnit unit) {
-    return new RFuture(delay, unit) {
+    return new RFuture() {
       @Override
       protected ListenableScheduledFuture<?> createDelegateFuture(long delay,
           TimeUnit unit) {
         return Rescheduler.this.delegate().schedule(command, delay, unit);
       }
-    };
+    }.start(delay, unit);
   }
 
   protected abstract class RFuture<V> extends ForwardingFuture<V> implements
@@ -68,12 +68,13 @@ public class Rescheduler extends ForwardingListeningExecutorService implements
     private final ExecutionList executionList = new ExecutionList();
     private ListenableScheduledFuture<V> delegateFuture;
 
-    public RFuture(long delay, TimeUnit unit) {
-      initDelegateFuture(delay, unit);
-    }
-
     protected abstract ListenableScheduledFuture<V> createDelegateFuture(
         long delay, TimeUnit unit);
+
+    RFuture<V> start(long delay, TimeUnit unit) {
+      initDelegateFuture(delay, unit);
+      return this;
+    }
 
     private void initDelegateFuture(long delay, TimeUnit unit) {
       delegateFuture = createDelegateFuture(delay, unit);
