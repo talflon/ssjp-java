@@ -267,17 +267,17 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   protected void performClose() {
     getCallbackInputStream().setCallback(null);
     getCallbackOutputStream().setCallback(null);
-    if (inputter != null) {
-      closeSafeCloseable(inputter);
-    }
-    if (outputter != null) {
-      closeSafeCloseable(outputter);
-    }
+    cleanupSafeCloseable(inputter);
+    cleanupSafeCloseable(outputter);
     getCloseFuture().addListener(new Runnable() {
       @Override
       public void run() {
-        inputTimeout.stop();
-        outputTimeout.stop();
+        if (inputTimeout != null) {
+          inputTimeout.stop();
+        }
+        if (outputTimeout != null) {
+          outputTimeout.stop();
+        }
       }
     }, MoreExecutors.sameThreadExecutor());
   }

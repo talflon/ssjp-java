@@ -1,5 +1,7 @@
 package djgcv.ssjp.util;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -77,23 +79,54 @@ public abstract class SafeCloseableImpl implements SafeCloseable {
     return task != null && task.isDone();
   }
 
-  protected void closeSafeCloseable(SafeCloseable child) {
-    addCloseTask(child.close());
+  protected CompletionCount checkStillClosing() {
+    CompletionCount task = taskRef.get();
+    checkState(task != null);
+    return task;
   }
 
-  protected void addCloseTask(ListenableFuture<?> childTask) {
-    CompletionCount task = taskRef.get();
-    if (task != null) {
-      task.addChild(childTask);
+  protected void closeSafeCloseable(SafeCloseable child) {
+    closeSafeCloseable(checkStillClosing(), child);
+  }
+
+  protected void closeSafeCloseable(CompletionCount task, SafeCloseable child) {
+    addCloseTask(task, child.close());
+  }
+
+  protected void cleanupSafeCloseable(SafeCloseable child) {
+    cleanupSafeCloseable(checkStillClosing(), child);
+  }
+
+  protected void cleanupSafeCloseable(CompletionCount task, SafeCloseable child) {
+    if (child != null) {
+      closeSafeCloseable(task, child);
     }
   }
 
+  protected void addCloseTask(ListenableFuture<?> childTask) {
+    addCloseTask(checkStillClosing(), childTask);
+  }
+
+  protected void addCloseTask(CompletionCount task,
+      ListenableFuture<?> childTask) {
+    task.addChild(childTask);
+  }
+
   protected void runCloseTask(Runnable childTask) {
-    addCloseTask(getCloseExecutor().submit(childTask));
+    runCloseTask(checkStillClosing(), childTask);
+  }
+
+  protected void runCloseTask(CompletionCount task, Runnable childTask) {
+    addCloseTask(task, getCloseExecutor().submit(childTask));
   }
 
   protected void closeQuietly(final java.io.Closeable closeable) {
-    runCloseTask(new Runnable() {
+    closeQuietly(checkStillClosing(), closeable);
+  }
+
+  protected void closeQuietly(CompletionCount task,
+      final java.io.Closeable closeable) {
+    runCloseTask(task, new Runnable() {
       @Override
       public void run() {
         try {
@@ -106,5 +139,16 @@ public abstract class SafeCloseableImpl implements SafeCloseable {
         }
       }
     });
+  }
+
+  protected void cleanupQuietly(java.io.Closeable closeable) {
+    cleanupQuietly(checkStillClosing(), closeable);
+  }
+
+  protected void cleanupQuietly(CompletionCount task,
+      java.io.Closeable closeable) {
+    if (closeable != null) {
+      closeQuietly(task, closeable);
+    }
   }
 }

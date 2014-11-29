@@ -12,6 +12,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -19,8 +20,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
 public class SafeCloseableImplTest extends ExecutorTestBase<ListeningExecutorService> {
-  public SafeCloseableImplTest() {
-    super(MoreExecutors.listeningDecorator(Executors.newCachedThreadPool()));
+  @Before
+  public void setUp() {
+    setExecutor(MoreExecutors.listeningDecorator(
+        Executors.newCachedThreadPool(this)));
   }
 
   private class SafeCloseableImpl extends djgcv.ssjp.util.SafeCloseableImpl {

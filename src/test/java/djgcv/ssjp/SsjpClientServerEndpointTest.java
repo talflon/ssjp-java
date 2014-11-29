@@ -31,28 +31,20 @@ public class SsjpClientServerEndpointTest extends ExecutorTestBase<ListeningSche
   SsjpServerEndpoint server;
   SsjpClientEndpoint client;
 
-  public SsjpClientServerEndpointTest() {
-    super(MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(5)));
-  }
-
   @Before
   public void setUp() throws Exception {
+    setExecutor(MoreExecutors.listeningDecorator(
+        Executors.newScheduledThreadPool(5, this)));
     mapper = new ObjectMapper();
-    socketPair = new SocketPair(getExecutor());
+    socketPair = SocketPair.create(getExecutor());
   }
 
   @Override
   protected void performClose() {
     super.performClose();
-    if (socketPair != null) {
-      socketPair.close();
-    }
-    if (server != null) {
-      server.close();
-    }
-    if (client != null) {
-      client.close();
-    }
+    cleanupSafeCloseable(socketPair);
+    cleanupSafeCloseable(server);
+    cleanupSafeCloseable(client);
   }
 
   protected void startConnect() throws Exception {

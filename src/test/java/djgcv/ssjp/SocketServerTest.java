@@ -35,12 +35,10 @@ public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecuto
   Pipe<ObjectNode> upstream;
   SsjpClientEndpoint client;
 
-  public SocketServerTest() {
-    super(MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(5)));
-  }
-
   @Before
   public void setUp() throws Exception {
+    setExecutor(MoreExecutors.listeningDecorator(
+        Executors.newScheduledThreadPool(5, this)));
     mapper = new ObjectMapper();
     demux = new MessageIdDemux();
     upstream = new PipeImpl<ObjectNode>();
@@ -56,18 +54,10 @@ public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecuto
 
   @Override
   protected void performClose() {
-    if (server != null) {
-      closeSafeCloseable(server);
-    }
-    if (serverSocket != null) {
-      closeQuietly(serverSocket);
-    }
-    if (client != null) {
-      closeSafeCloseable(client);
-    }
-    if (demux != null) {
-      closeSafeCloseable(demux);
-    }
+    cleanupSafeCloseable(server);
+    cleanupQuietly(serverSocket);
+    cleanupSafeCloseable(client);
+    cleanupSafeCloseable(demux);
   }
 
   @Test

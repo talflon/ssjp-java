@@ -9,8 +9,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListeningExecutorService;
 
-public abstract class BasePipeTest {
+import djgcv.ssjp.util.ExecutorTestBase;
+
+public abstract class BasePipeTest
+    extends ExecutorTestBase<ListeningExecutorService> {
   protected abstract <T> Pipe<T> createPipe();
 
   @Test

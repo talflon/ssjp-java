@@ -7,31 +7,27 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
-public class SocketPairTest {
-  ListeningExecutorService executor;
+import djgcv.ssjp.util.ExecutorTestBase;
+
+public class SocketPairTest extends ExecutorTestBase<ListeningExecutorService> {
   SocketPair socketPair;
 
   @Before
   public void setUp() throws Exception {
-    executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-    socketPair = new SocketPair(executor);
+    setExecutor(MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(this)));
+    socketPair = SocketPair.create(getExecutor());
   }
 
-  @After
-  public void tearDown() throws Exception {
-    if (executor != null) {
-      executor.shutdownNow();
-    }
-    if (socketPair != null) {
-      socketPair.close();
-    }
+  @Override
+  protected void performClose() {
+    super.performClose();
+    cleanupSafeCloseable(socketPair);
   }
 
   @Test
