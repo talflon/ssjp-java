@@ -4,24 +4,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.net.Socket;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import djgcv.ssjp.util.ExecutorShopBase;
 
-import djgcv.ssjp.util.ExecutorTestBase;
-
-public class SocketPairTest extends ExecutorTestBase<ListeningExecutorService> {
+public class SocketPairTest extends ExecutorShopBase {
   SocketPair socketPair;
 
   @Before
   public void setUp() throws Exception {
-    setExecutor(MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(this)));
-    socketPair = SocketPair.create(getExecutor());
+    setExecutorShop();
+    socketPair = SocketPair.create(getExecutorShop().getBlockingExecutor());
   }
 
   @Override

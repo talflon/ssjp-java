@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
+import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.Timeout;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
 import djgcv.ssjp.util.flow.EndpointImpl;
@@ -41,7 +42,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   static final Logger log = LoggerFactory.getLogger(BaseSsjpEndpoint.class);
 
   private final ObjectMapper mapper;
-  private final ScheduledExecutorService executor;
+  private final ExecutorShop executorShop;
   private final JsonObjectInputter inputter;
   private final JsonObjectOutputter outputter;
   private final ObjectNode ourOptions;
@@ -50,12 +51,11 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   private final StreamTimeout<ActivityCallbackInputStream> inputTimeout;
   private final StreamTimeout<ActivityCallbackOutputStream> outputTimeout;
 
-  protected BaseSsjpEndpoint(ObjectMapper mapper,
-      ScheduledExecutorService executor,
+  protected BaseSsjpEndpoint(ObjectMapper mapper, ExecutorShop executorShop,
       InputStream inputStream, OutputStream outputStream, ObjectNode options)
       throws IOException {
     this.mapper = mapper;
-    this.executor = executor;
+    this.executorShop = executorShop;
     ourOptions = options;
     JsonFactory factory = mapper.getFactory();
     inputTimeout = new StreamTimeout<ActivityCallbackInputStream>(
@@ -78,15 +78,14 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
         wrapOutputStream(outputTimeout.getStream()), true);
   }
 
-  protected BaseSsjpEndpoint(ObjectMapper mapper,
-      ScheduledExecutorService executor,
+  protected BaseSsjpEndpoint(ObjectMapper mapper, ExecutorShop executorShop,
       Socket socket, ObjectNode options) throws IOException {
-    this(mapper, executor, socket.getInputStream(), socket.getOutputStream(),
+    this(mapper, executorShop, socket.getInputStream(), socket.getOutputStream(),
         options);
   }
 
   public void start() {
-    executor.execute(new Runnable() {
+    getExecutorShop().getBlockingExecutor().execute(new Runnable() {
       @Override
       public void run() {
         try {
@@ -110,6 +109,10 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   @Override
   public ListenableFuture<Receiver<? super ObjectNode>> getInputFuture() {
     return inputFuture;
+  }
+
+  public ExecutorShop getExecutorShop() {
+    return executorShop;
   }
 
   protected InputStream wrapInputStream(InputStream inputStream) {
@@ -138,7 +141,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
 
     @Override
     protected ScheduledExecutorService getExecutor() {
-      return BaseSsjpEndpoint.this.executor;
+      return getExecutorShop().getScheduler();
     }
   }
 
@@ -193,7 +196,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
         }
       }
     });
-    executor.execute(new Runnable() {
+    getExecutorShop().getBlockingExecutor().execute(new Runnable() {
       @Override
       public void run() {
         try {
@@ -208,16 +211,17 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
 
   protected void finishHandshaking() {
     log.debug("Finished handshaking; creating output pipe");
-    Pipe<ObjectNode> pipe = new ConcurrentPipe<ObjectNode>(executor);
+    Pipe<ObjectNode> pipe = new ConcurrentPipe<ObjectNode>(
+        getExecutorShop().getBlockingExecutor());
     pipe.getOutput().appendReceiver(outputter);
     inputFuture.set(pipe.getInput());
     log.debug("Spawning input loop");
     inputter.getReceiverList().appendReceiver(getOutputPipe().getInput());
-    executor.execute(new Runnable() {
+    getExecutorShop().getBlockingExecutor().execute(new Runnable() {
       @Override
       public void run() {
         try {
-          while (true) { // XXX terrible?
+          while (true) {
             inputter.inputOneValue();
           }
         } catch (Exception e) {

@@ -3,8 +3,6 @@ package djgcv.ssjp;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 
+import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.SafeCloseableImpl;
 import djgcv.ssjp.util.flow.Endpoint;
 import djgcv.ssjp.util.flow.Handlers;
@@ -26,23 +25,23 @@ public class SocketServer extends SafeCloseableImpl {
   private final ObjectMapper mapper;
   private final ServerSocket serverSocket;
   private final Node<ObjectNode> node;
-  private final ScheduledExecutorService executor;
+  private final ExecutorShop executorShop;
   private final ObjectNode options;
   private final Receiver<? super ObjectNode> upstream;
 
   public SocketServer(ObjectMapper mapper, ServerSocket serverSocket,
-      Node<ObjectNode> node, ScheduledExecutorService executor,
+      Node<ObjectNode> node, ExecutorShop executorShop,
       ObjectNode options, Receiver<? super ObjectNode> upstream) {
     this.mapper = mapper;
     this.serverSocket = serverSocket;
     this.node = node;
-    this.executor = executor;
+    this.executorShop = executorShop;
     this.options = options;
     this.upstream = upstream;
   }
 
   public void start() {
-    executor.execute(new Runnable() {
+    getExecutorShop().getBlockingExecutor().execute(new Runnable() {
       @Override
       public void run() {
         try {
@@ -62,8 +61,8 @@ public class SocketServer extends SafeCloseableImpl {
     return serverSocket;
   }
 
-  public Executor getExecutor() {
-    return executor;
+  public ExecutorShop getExecutorShop() {
+    return executorShop;
   }
 
   public Node<ObjectNode> getNode() {
@@ -74,7 +73,8 @@ public class SocketServer extends SafeCloseableImpl {
     Socket socket = getServerSocket().accept();
     log.debug("Accepted connection");
     final Endpoint<ObjectNode> localEndpoint = getNode().connect(upstream);
-    final SsjpServerEndpoint remoteEndpoint = new SsjpServerEndpoint(mapper, executor, socket, options) {
+    final SsjpServerEndpoint remoteEndpoint = new SsjpServerEndpoint(
+        mapper, getExecutorShop(), socket, options) {
       @Override
       protected void performClose() {
         super.performClose();

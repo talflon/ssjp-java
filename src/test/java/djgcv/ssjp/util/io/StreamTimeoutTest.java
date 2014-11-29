@@ -3,7 +3,6 @@ package djgcv.ssjp.util.io;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,23 +11,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
-import djgcv.ssjp.util.ExecutorTestBase;
+import djgcv.ssjp.util.ExecutorShopBase;
 import djgcv.ssjp.util.MockScheduledExecutor;
 
-public class StreamTimeoutTest
-    extends ExecutorTestBase<ListeningExecutorService> {
+public class StreamTimeoutTest extends ExecutorShopBase {
   MockScheduledExecutor scheduler;
   MockStream stream;
   TimeoutCounter counter;
 
   @Before
   public void setUp() throws Exception {
-    setExecutor(MoreExecutors.listeningDecorator(
-        Executors.newCachedThreadPool(this)));
-    scheduler = new MockScheduledExecutor(getExecutor());
+    setExecutorShop();
+    scheduler = new MockScheduledExecutor(getExecutorShop().getExecutor());
     stream = new MockStream();
     counter = new TimeoutCounter(stream);
   }

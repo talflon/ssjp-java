@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -16,14 +15,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 
-public class SafeCloseableImplTest extends ExecutorTestBase<ListeningExecutorService> {
+public class SafeCloseableImplTest extends ExecutorShopBase {
   @Before
   public void setUp() {
-    setExecutor(MoreExecutors.listeningDecorator(
-        Executors.newCachedThreadPool(this)));
+    setExecutorShop();
   }
 
   private class SafeCloseableImpl extends djgcv.ssjp.util.SafeCloseableImpl {
@@ -32,7 +29,7 @@ public class SafeCloseableImplTest extends ExecutorTestBase<ListeningExecutorSer
 
     @Override
     public ListeningExecutorService getCloseExecutor() {
-      return getExecutor();
+      return getExecutorShop().getBlockingExecutor();
     }
   }
 

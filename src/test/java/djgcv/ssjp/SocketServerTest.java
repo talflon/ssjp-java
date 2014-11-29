@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -16,16 +15,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
-import djgcv.ssjp.util.ExecutorTestBase;
+import djgcv.ssjp.util.ExecutorShopBase;
 import djgcv.ssjp.util.flow.FutureHandler;
 import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.PipeImpl;
 import djgcv.ssjp.util.flow.Receiver;
 
-public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecutorService> {
+public class SocketServerTest extends ExecutorShopBase {
   static final Logger log = LoggerFactory.getLogger(SocketServerTest.class);
 
   ObjectMapper mapper;
@@ -37,17 +34,17 @@ public class SocketServerTest extends ExecutorTestBase<ListeningScheduledExecuto
 
   @Before
   public void setUp() throws Exception {
-    setExecutor(MoreExecutors.listeningDecorator(
-        Executors.newScheduledThreadPool(5, this)));
+    setExecutorShop();
     mapper = new ObjectMapper();
     demux = new MessageIdDemux();
     upstream = new PipeImpl<ObjectNode>();
     serverSocket = new ServerSocket(0);
-    server = new SocketServer(mapper, serverSocket, demux, getExecutor(), null, upstream.getInput());
+    server = new SocketServer(mapper, serverSocket, demux, getExecutorShop(),
+        null, upstream.getInput());
     server.start();
     Socket socket = new Socket();
     socket.connect(serverSocket.getLocalSocketAddress());
-    client = new SsjpClientEndpoint(mapper, getExecutor(), socket, null);
+    client = new SsjpClientEndpoint(mapper, getExecutorShop(), socket, null);
     client.start();
     client.getInputFuture().get(5, TimeUnit.SECONDS);
   }
