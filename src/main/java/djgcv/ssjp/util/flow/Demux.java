@@ -41,7 +41,7 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
     handle(value);
   }
 
-  public ListenableFuture<T> sendRequest(Receiver<T> upstream, T message) {
+  public ListenableFuture<T> sendRequest(Receiver<? super T> upstream, T message) {
     FutureHandler<T> response = new FutureHandler<T>();
     final Connection conn = connect(upstream);
     conn.getOutput().appendReceiver(response);
