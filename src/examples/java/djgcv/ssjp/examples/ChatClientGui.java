@@ -36,6 +36,7 @@ import djgcv.ssjp.util.flow.HandlerImpl;
 import djgcv.ssjp.util.flow.HandlerPipe;
 import djgcv.ssjp.util.flow.HandlerPipeImpl;
 import djgcv.ssjp.util.flow.Handlers;
+import djgcv.ssjp.util.flow.Nodes;
 import djgcv.ssjp.util.flow.Pipe;
 
 public class ChatClientGui extends JFrame {
@@ -162,7 +163,7 @@ public class ChatClientGui extends JFrame {
       return;
     }
     Futures.addCallback(
-        demux.sendRequest(client.getInput(),
+        Nodes.sendRequest(demux, client.getInput(),
             Messages.request(mapper, ChatServer.PATH, "nick",
                 mapper.createObjectNode().put("nick", nick))),
         new FutureCallback<ObjectNode>() {

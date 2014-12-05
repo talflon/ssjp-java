@@ -3,9 +3,7 @@ package djgcv.ssjp.util.flow;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
 import djgcv.ssjp.util.SafeCloseable;
 import djgcv.ssjp.util.SafeCloseableImpl;
@@ -39,20 +37,6 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
   @Override
   public void receive(T value) {
     handle(value);
-  }
-
-  public ListenableFuture<T> sendRequest(Receiver<? super T> upstream, T message) {
-    FutureHandler<T> response = new FutureHandler<T>();
-    final Connection conn = connect(upstream);
-    conn.getOutput().appendReceiver(response);
-    response.addListener(new Runnable() {
-      @Override
-      public void run() {
-        conn.close();
-      }
-    }, MoreExecutors.sameThreadExecutor());
-    conn.getInput().receive(message);
-    return response;
   }
 
   protected class Connection extends EndpointImpl<T> {

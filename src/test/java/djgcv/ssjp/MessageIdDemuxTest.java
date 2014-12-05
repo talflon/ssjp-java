@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import djgcv.ssjp.util.flow.Nodes;
 import djgcv.ssjp.util.flow.Receiver;
 
 public class MessageIdDemuxTest {
@@ -26,7 +27,7 @@ public class MessageIdDemuxTest {
     };
     JsonNode args = mapper.valueToTree("hello!");
     JsonNode tag = mapper.valueToTree("tag");
-    ObjectNode response = demux.sendRequest(echoServer,
+    ObjectNode response = Nodes.sendRequest(demux, echoServer,
         Messages.request(mapper, "com.echo", "please_echo", args, tag)).get(1,
         TimeUnit.SECONDS);
     assertEquals(args, response.get("rsp"));
