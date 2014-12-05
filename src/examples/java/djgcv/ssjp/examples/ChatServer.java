@@ -17,7 +17,6 @@ import djgcv.ssjp.SocketServer;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.ExecutorShops;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
-import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.Receiver;
 
@@ -40,8 +39,7 @@ public class ChatServer {
     pathMap.getHandlers(PATH).appendReceiver(reqMap);
     upstreamPipe = new ConcurrentPipe<ObjectNode>(executorShop.getExecutor());
     upstreamPipe.getOutput().appendReceiver(pathMap);
-    clientDemux.getOutput().appendReceiver(
-        Handlers.forReceiver(upstreamPipe.getInput(), true));
+    clientDemux.getOutput().appendReceiver(upstreamPipe.getInput());
     socketServer = new SocketServer(mapper, new ServerSocket(port),
         clientDemux, executorShop, null);
   }

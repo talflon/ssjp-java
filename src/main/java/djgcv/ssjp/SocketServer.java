@@ -15,7 +15,6 @@ import com.google.common.util.concurrent.Futures;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.SafeCloseableImpl;
 import djgcv.ssjp.util.flow.Endpoint;
-import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Node;
 import djgcv.ssjp.util.flow.Receiver;
 
@@ -85,8 +84,8 @@ public class SocketServer extends SafeCloseableImpl {
 
       @Override
       public void onSuccess(Receiver<? super ObjectNode> input) {
-        localEndpoint.getOutput().appendReceiver(Handlers.forReceiver(input, true));
-        remoteEndpoint.getOutput().appendReceiver(Handlers.forReceiver(localEndpoint.getInput(), true));
+        localEndpoint.getOutput().appendReceiver(input);
+        remoteEndpoint.getOutput().appendReceiver(localEndpoint.getInput());
         log.debug("Finished connecting");
       }
     });

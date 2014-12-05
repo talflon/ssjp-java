@@ -14,7 +14,7 @@ public abstract class HandlerMap<K, T> implements Receiver<T> {
   protected synchronized Pipe<T> getPipe(K key) {
     Pipe<T> pipe = findPipe(key);
     if (pipe == null) {
-      pipe = new HandlerPipeImpl<T>();
+      pipe = new HandlerPipe<T>();
       map.put(key, pipe);
     }
     return pipe;

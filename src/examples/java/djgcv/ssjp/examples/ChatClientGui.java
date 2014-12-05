@@ -31,8 +31,7 @@ import djgcv.ssjp.SsjpClientEndpoint;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.ExecutorShops;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
-import djgcv.ssjp.util.flow.HandlerPipeImpl;
-import djgcv.ssjp.util.flow.Handlers;
+import djgcv.ssjp.util.flow.HandlerPipe;
 import djgcv.ssjp.util.flow.Nodes;
 import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.Receiver;
@@ -43,7 +42,7 @@ public class ChatClientGui extends JFrame {
   protected final ExecutorShop executorShop;
   protected final JTextArea outputText;
   protected final JTextField inputField;
-  private final Receiver<ObjectNode> inputHandler;
+  private final Receiver<? super ObjectNode> inputHandler;
   private final MessageIdDemux demux = new MessageIdDemux();
   private SsjpClientEndpoint client;
 
@@ -65,10 +64,9 @@ public class ChatClientGui extends JFrame {
     reqMap.getHandlers("said").appendReceiver(handleSaid);
     HandlerPathMap pathMap = new HandlerPathMap();
     pathMap.getHandlers(ChatServer.PATH).appendReceiver(reqMap);
-    Pipe<ObjectNode> inputPipe = new HandlerPipeImpl<ObjectNode>();
+    Pipe<ObjectNode> inputPipe = new HandlerPipe<ObjectNode>();
     inputPipe.getOutput().appendReceiver(pathMap);
-    inputPipe.getOutput().appendReceiver(
-        Handlers.forReceiver(demux.getInput(), true));
+    inputPipe.getOutput().appendReceiver(demux.getInput());
     inputPipe.getOutput().appendReceiver(new Receiver<ObjectNode>() {
       @Override
       public boolean receive(ObjectNode value) {
@@ -79,7 +77,7 @@ public class ChatClientGui extends JFrame {
     Pipe<ObjectNode> cPipe = new ConcurrentPipe<ObjectNode>(
         executorShop.getExecutor());
     cPipe.getOutput().appendReceiver(inputPipe.getInput());
-    inputHandler = Handlers.forReceiver(cPipe.getInput(), true);
+    inputHandler = cPipe.getInput();
   }
 
   static final Pattern CONNECT_PATTERN =
@@ -220,7 +218,7 @@ public class ChatClientGui extends JFrame {
 
   protected synchronized void closeClient() {
     if (client != null) {
-      demux.getOutput().removeReceiver(Handlers.forReceiver(client.getInput(), true));
+      demux.getOutput().removeReceiver(client.getInput());
       client.close();
       client = null;
     }
@@ -242,7 +240,7 @@ public class ChatClientGui extends JFrame {
       client.getInputFuture().addListener(new Runnable() {
         @Override
         public void run() {
-          demux.getOutput().appendReceiver(Handlers.forReceiver(client.getInput(), true));
+          demux.getOutput().appendReceiver(client.getInput());
           addOutput("*** CONNECTED to " + host + ":" + port);
         }
       }, MoreExecutors.sameThreadExecutor());

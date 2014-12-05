@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import djgcv.ssjp.util.ExecutorShopBase;
 import djgcv.ssjp.util.flow.FutureReceiver;
-import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Receiver;
 
 public class SocketServerTest extends ExecutorShopBase {
@@ -72,13 +71,13 @@ public class SocketServerTest extends ExecutorShopBase {
   public void testSendReceive() throws Exception {
     waitClientConnect();
     final JsonNode response = new TextNode("thank you for your inquiry");
-    demux.getOutput().appendReceiver(Handlers.forReceiver(new Receiver<ObjectNode>() {
+    demux.getOutput().appendReceiver(new Receiver<ObjectNode>() {
       @Override
       public boolean receive(ObjectNode value) {
         return demux.getInput().receive(
             Messages.response(mapper, response, value.get("tag")));
       }
-    }, true));
+    });
     FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     client.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", "hey_guys"));
