@@ -19,6 +19,7 @@ import djgcv.ssjp.util.ExecutorShops;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
 import djgcv.ssjp.util.flow.Handler;
 import djgcv.ssjp.util.flow.HandlerImpl;
+import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Pipe;
 
 public class ChatServer {
@@ -40,8 +41,10 @@ public class ChatServer {
     pathMap.getHandlers(PATH).appendReceiver(reqMap);
     upstreamPipe = new ConcurrentPipe<ObjectNode>(executorShop.getExecutor());
     upstreamPipe.getOutput().appendReceiver(pathMap);
+    clientDemux.getOutput().appendReceiver(
+        Handlers.forReceiver(upstreamPipe.getInput(), true));
     socketServer = new SocketServer(mapper, new ServerSocket(port),
-        clientDemux, executorShop, null, upstreamPipe.getInput());
+        clientDemux, executorShop, null);
   }
 
   protected final Handler<ObjectNode> nickHandler = new HandlerImpl<ObjectNode>() {
@@ -56,13 +59,13 @@ public class ChatServer {
         return false;
       }
       if (setNick(nickNode.asText(), idNode.asInt())) {
-        clientDemux.receive(Messages.response(
+        clientDemux.getInput().receive(Messages.response(
             mapper,
             mapper.createObjectNode()
                 .put("success", true),
             msg.get("tag")));
       } else {
-        clientDemux.receive(Messages.response(
+        clientDemux.getInput().receive(Messages.response(
             mapper,
             mapper.createObjectNode()
                 .put("success", false)
@@ -104,7 +107,7 @@ public class ChatServer {
       nick = "{" + id + "}";
     }
     for (int recvId : nicks.values()) {
-      clientDemux.receive(Messages.request(mapper, PATH, "said",
+      clientDemux.getInput().receive(Messages.request(mapper, PATH, "said",
           mapper.createObjectNode()
               .put("what", what)
               .put("who", nick),

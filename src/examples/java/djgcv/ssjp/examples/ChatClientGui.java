@@ -69,7 +69,8 @@ public class ChatClientGui extends JFrame {
     pathMap.getHandlers(ChatServer.PATH).appendReceiver(reqMap);
     HandlerPipe<ObjectNode> inputPipe = new HandlerPipeImpl<ObjectNode>();
     inputPipe.getOutput().appendReceiver(pathMap);
-    inputPipe.getOutput().appendReceiver(demux);
+    inputPipe.getOutput().appendReceiver(
+        Handlers.forReceiver(demux.getInput(), true));
     inputPipe.getOutput().appendReceiver(new HandlerImpl<ObjectNode>() {
       @Override
       public boolean handle(ObjectNode value) {
@@ -148,8 +149,7 @@ public class ChatClientGui extends JFrame {
   };
 
   protected void send(String what) {
-    SsjpClientEndpoint client = getConnectedClientOrReport();
-    if (client == null) {
+    if (getConnectedClientOrReport() == null) {
       return;
     }
     client.getInput().receive(
@@ -158,12 +158,11 @@ public class ChatClientGui extends JFrame {
   }
 
   protected void requestNick(final String nick) {
-    SsjpClientEndpoint client = getConnectedClientOrReport();
-    if (client == null) {
+    if (getConnectedClientOrReport() == null) {
       return;
     }
     Futures.addCallback(
-        Nodes.sendRequest(demux, client.getInput(),
+        Nodes.sendRequest(demux,
             Messages.request(mapper, ChatServer.PATH, "nick",
                 mapper.createObjectNode().put("nick", nick))),
         new FutureCallback<ObjectNode>() {
@@ -223,6 +222,7 @@ public class ChatClientGui extends JFrame {
 
   protected synchronized void closeClient() {
     if (client != null) {
+      demux.getOutput().removeReceiver(Handlers.forReceiver(client.getInput(), true));
       client.close();
       client = null;
     }
@@ -244,6 +244,7 @@ public class ChatClientGui extends JFrame {
       client.getInputFuture().addListener(new Runnable() {
         @Override
         public void run() {
+          demux.getOutput().appendReceiver(Handlers.forReceiver(client.getInput(), true));
           addOutput("*** CONNECTED to " + host + ":" + port);
         }
       }, MoreExecutors.sameThreadExecutor());

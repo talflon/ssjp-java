@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import djgcv.ssjp.util.flow.Demux;
+import djgcv.ssjp.util.flow.Handler;
+import djgcv.ssjp.util.flow.HandlerImpl;
+import djgcv.ssjp.util.flow.Receiver;
 
 public class MessageIdDemux extends Demux<Integer, ObjectNode> {
   private int nextId = 0;
@@ -28,22 +31,29 @@ public class MessageIdDemux extends Demux<Integer, ObjectNode> {
   }
 
   @Override
-  public boolean handle(ObjectNode message) {
-    JsonNode tag = message.get("tag");
-    JsonNode idNode = tag.get("id");
-    if (idNode.isInt()) {
-      Demux<?, ObjectNode>.Connection connection = getConnection(idNode.asInt());
-      if (connection != null) {
-        ObjectNode result = message.objectNode();
-        result.setAll(message);
-        if (tag.has("old")) {
-          result.replace("tag", tag.get("old"));
-        } else {
-          result.remove("tag");
-        }
-        return connection.getOutputPipe().getInput().handle(result);
-      }
-    }
-    return false;
+  public Receiver<? super ObjectNode> getInput() {
+    return inputHandler;
   }
+
+  private final Handler<ObjectNode> inputHandler = new HandlerImpl<ObjectNode>() {
+    @Override
+    public boolean handle(ObjectNode message) {
+      JsonNode tag = message.get("tag");
+      JsonNode idNode = tag.get("id");
+      if (idNode.isInt()) {
+        Demux<?, ObjectNode>.Connection connection = getConnection(idNode.asInt());
+        if (connection != null) {
+          ObjectNode result = message.objectNode();
+          result.setAll(message);
+          if (tag.has("old")) {
+            result.replace("tag", tag.get("old"));
+          } else {
+            result.remove("tag");
+          }
+          return connection.getOutputPipe().getInput().handle(result);
+        }
+      }
+      return false;
+    }
+  };
 }

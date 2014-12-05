@@ -6,15 +6,14 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
 import djgcv.ssjp.util.SafeCloseable;
-import djgcv.ssjp.util.SafeCloseableImpl;
 
-public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
+public abstract class Demux<K, T> extends EndpointImpl<T> implements Node<T> {
   private final Map<K, Connection> connections = Maps.newHashMap();
 
   @Override
-  public synchronized Connection connect(Receiver<? super T> upstream) {
+  public synchronized Connection connect() {
     K key = getNextKey();
-    Connection conn = new Connection(key, upstream);
+    Connection conn = new Connection(key);
     if (isClosing()) throw new IllegalStateException();
     connections.put(key, conn);
     return conn;
@@ -34,21 +33,16 @@ public abstract class Demux<K, T> extends SafeCloseableImpl implements Node<T> {
     }
   }
 
-  @Override
-  public void receive(T value) {
-    handle(value);
-  }
-
   protected class Connection extends EndpointImpl<T> {
     protected final K key;
     private final Receiver<T> input;
 
-    Connection(K key, final Receiver<? super T> upstream) {
+    Connection(K key) {
       this.key = key;
       input = new Receiver<T>() {
         @Override
         public void receive(T value) {
-          upstream.receive(muxValue(value));
+          Demux.this.getOutputPipe().getInput().receive(muxValue(value));
         }
       };
     }

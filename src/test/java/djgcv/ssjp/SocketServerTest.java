@@ -18,8 +18,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import djgcv.ssjp.util.ExecutorShopBase;
 import djgcv.ssjp.util.flow.FutureHandler;
-import djgcv.ssjp.util.flow.Pipe;
-import djgcv.ssjp.util.flow.PipeImpl;
+import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Receiver;
 
 public class SocketServerTest extends ExecutorShopBase {
@@ -29,7 +28,6 @@ public class SocketServerTest extends ExecutorShopBase {
   ServerSocket serverSocket;
   SocketServer server;
   MessageIdDemux demux;
-  Pipe<ObjectNode> upstream;
   SsjpClientEndpoint client;
 
   @Before
@@ -37,10 +35,9 @@ public class SocketServerTest extends ExecutorShopBase {
     setExecutorShop();
     mapper = new ObjectMapper();
     demux = new MessageIdDemux();
-    upstream = new PipeImpl<ObjectNode>();
     serverSocket = new ServerSocket(0);
     server = new SocketServer(mapper, serverSocket, demux, getExecutorShop(),
-        null, upstream.getInput());
+        null);
     server.start();
     Socket socket = new Socket();
     socket.connect(serverSocket.getLocalSocketAddress());
@@ -75,12 +72,12 @@ public class SocketServerTest extends ExecutorShopBase {
   public void testSendReceive() throws Exception {
     waitClientConnect();
     final JsonNode response = new TextNode("thank you for your inquiry");
-    upstream.getOutput().appendReceiver(new Receiver<ObjectNode>() {
+    demux.getOutput().appendReceiver(Handlers.forReceiver(new Receiver<ObjectNode>() {
       @Override
       public void receive(ObjectNode value) {
-        demux.receive(Messages.response(mapper, response, value.get("tag")));
+        demux.getInput().receive(Messages.response(mapper, response, value.get("tag")));
       }
-    });
+    }, true));
     FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
     client.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", "hey_guys"));
@@ -92,7 +89,7 @@ public class SocketServerTest extends ExecutorShopBase {
     waitClientConnect();
     String request = "hey_guys";
     FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
-    upstream.getOutput().appendReceiver(result);
+    demux.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", request));
     assertEquals(request, result.get(2, TimeUnit.SECONDS).get("req").asText());
   }

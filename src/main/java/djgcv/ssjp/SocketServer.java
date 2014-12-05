@@ -27,17 +27,15 @@ public class SocketServer extends SafeCloseableImpl {
   private final Node<ObjectNode> node;
   private final ExecutorShop executorShop;
   private final ObjectNode options;
-  private final Receiver<? super ObjectNode> upstream;
 
   public SocketServer(ObjectMapper mapper, ServerSocket serverSocket,
       Node<ObjectNode> node, ExecutorShop executorShop,
-      ObjectNode options, Receiver<? super ObjectNode> upstream) {
+      ObjectNode options) {
     this.mapper = mapper;
     this.serverSocket = serverSocket;
     this.node = node;
     this.executorShop = executorShop;
     this.options = options;
-    this.upstream = upstream;
   }
 
   public void start() {
@@ -72,7 +70,7 @@ public class SocketServer extends SafeCloseableImpl {
   protected void acceptOne() throws IOException {
     Socket socket = getServerSocket().accept();
     log.debug("Accepted connection");
-    final Endpoint<ObjectNode> localEndpoint = getNode().connect(upstream);
+    final Endpoint<ObjectNode> localEndpoint = getNode().connect();
     final SsjpServerEndpoint remoteEndpoint = new SsjpServerEndpoint(
         mapper, getExecutorShop(), socket, options) {
       @Override
