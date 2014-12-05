@@ -113,15 +113,16 @@ public class ChatClientGui extends JFrame {
             addOutput("*** TOO MANY ARGUMENTS");
           }
         } else if ("\\enter".equals(split[0])) {
-          if (split.length == 2) {
-            Matcher m = CONNECT_PATTERN.matcher(split[1]);
+          if (split.length <= 2) {
+            Matcher m = CONNECT_PATTERN.matcher(
+                (split.length > 1) ? split[1] : "");
             if (m.matches()) {
               String host = m.group(1);
-              if ("".equals(host)) {
+              if (host == null) {
                 host = "localhost";
               }
               int port;
-              if (m.group(2).length() > 0) {
+              if (m.group(2) != null) {
                 port = Integer.parseInt(m.group(2));
               } else {
                 port = ChatServer.PORT;
@@ -135,14 +136,32 @@ public class ChatClientGui extends JFrame {
           }
         } else if ("\\exit".equals(split[0])) {
           closeConnection();
+        } else if ("\\?".equals(split[0])) {
+          listCommands();
         } else {
           addOutput("*** UNKNOWN COMMAND: " + split[0]);
+          addOutput("*** For a list of commands, type \\?");
         }
       } else {
         send(command);
       }
     }
   };
+
+  protected void listCommands() {
+    addOutput("*** VALID COMMANDS:");
+    addOutput("*** \\enter [host][:port]");
+    addOutput("***\tConnects to the given host and port.");
+    addOutput("***\tIf host is not given, connects to localhost.");
+    addOutput("***\tIf port is not given, connects to default port ("
+        + ChatServer.PORT + ")");
+    addOutput("*** \\exit");
+    addOutput("***\tDisconnects from a server if connected.");
+    addOutput("*** \\nick <name>");
+    addOutput("***\tSets your name to <name> on the server.");
+    addOutput("*** \\?");
+    addOutput("***\tShows this help.");
+  }
 
   protected void send(String what) {
     if (getConnectedClientOrReport() == null) {
