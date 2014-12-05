@@ -41,8 +41,8 @@ public abstract class Demux<K, T> extends EndpointImpl<T> implements Node<T> {
       this.key = key;
       input = new Receiver<T>() {
         @Override
-        public void receive(T value) {
-          Demux.this.getOutputPipe().getInput().receive(muxValue(value));
+        public boolean receive(T value) {
+          return Demux.this.getOutputPipe().getInput().receive(muxValue(value));
         }
       };
     }

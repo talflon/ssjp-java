@@ -40,7 +40,7 @@ import djgcv.ssjp.Messages;
 import djgcv.ssjp.SsjpClientEndpoint;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.ExecutorShops;
-import djgcv.ssjp.util.flow.HandlerImpl;
+import djgcv.ssjp.util.flow.Receiver;
 
 public class SsjpTesterGui extends JFrame {
   protected final ExecutorShop executorShop;
@@ -146,9 +146,9 @@ public class SsjpTesterGui extends JFrame {
       client.getInputFuture().addListener(new Runnable() {
         @Override
         public void run() {
-          client.getOutput().prependReceiver(new HandlerImpl<ObjectNode>() {
+          client.getOutput().prependReceiver(new Receiver<ObjectNode>() {
             @Override
-            public boolean handle(ObjectNode value) {
+            public boolean receive(ObjectNode value) {
               ObjectMapper mapper = new ObjectMapper();
               mapper.enable(SerializationFeature.INDENT_OUTPUT);
               final String blah;

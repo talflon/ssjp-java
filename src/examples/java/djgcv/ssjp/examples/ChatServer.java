@@ -17,10 +17,9 @@ import djgcv.ssjp.SocketServer;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.ExecutorShops;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
-import djgcv.ssjp.util.flow.Handler;
-import djgcv.ssjp.util.flow.HandlerImpl;
 import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Pipe;
+import djgcv.ssjp.util.flow.Receiver;
 
 public class ChatServer {
   public static final String PATH = "djgcv.ssjp.examples.chat";
@@ -47,9 +46,9 @@ public class ChatServer {
         clientDemux, executorShop, null);
   }
 
-  protected final Handler<ObjectNode> nickHandler = new HandlerImpl<ObjectNode>() {
+  protected final Receiver<ObjectNode> nickHandler = new Receiver<ObjectNode>() {
     @Override
-    public boolean handle(ObjectNode msg) {
+    public boolean receive(ObjectNode msg) {
       JsonNode nickNode = msg.path("arg").get("nick");
       if (nickNode == null || !nickNode.isTextual()) {
         return false;
@@ -76,9 +75,9 @@ public class ChatServer {
     }
   };
 
-  protected final Handler<ObjectNode> saidHandler = new HandlerImpl<ObjectNode>() {
+  protected final Receiver<ObjectNode> saidHandler = new Receiver<ObjectNode>() {
     @Override
-    public boolean handle(ObjectNode msg) {
+    public boolean receive(ObjectNode msg) {
       JsonNode saidNode = msg.path("arg").get("what");
       if (saidNode == null || !saidNode.isTextual()) {
         return false;

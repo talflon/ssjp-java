@@ -31,13 +31,11 @@ import djgcv.ssjp.SsjpClientEndpoint;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.ExecutorShops;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
-import djgcv.ssjp.util.flow.Handler;
-import djgcv.ssjp.util.flow.HandlerImpl;
-import djgcv.ssjp.util.flow.HandlerPipe;
 import djgcv.ssjp.util.flow.HandlerPipeImpl;
 import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Nodes;
 import djgcv.ssjp.util.flow.Pipe;
+import djgcv.ssjp.util.flow.Receiver;
 
 public class ChatClientGui extends JFrame {
   protected static final ObjectMapper mapper = new ObjectMapper();
@@ -45,7 +43,7 @@ public class ChatClientGui extends JFrame {
   protected final ExecutorShop executorShop;
   protected final JTextArea outputText;
   protected final JTextField inputField;
-  private final Handler<ObjectNode> inputHandler;
+  private final Receiver<ObjectNode> inputHandler;
   private final MessageIdDemux demux = new MessageIdDemux();
   private SsjpClientEndpoint client;
 
@@ -67,13 +65,13 @@ public class ChatClientGui extends JFrame {
     reqMap.getHandlers("said").appendReceiver(handleSaid);
     HandlerPathMap pathMap = new HandlerPathMap();
     pathMap.getHandlers(ChatServer.PATH).appendReceiver(reqMap);
-    HandlerPipe<ObjectNode> inputPipe = new HandlerPipeImpl<ObjectNode>();
+    Pipe<ObjectNode> inputPipe = new HandlerPipeImpl<ObjectNode>();
     inputPipe.getOutput().appendReceiver(pathMap);
     inputPipe.getOutput().appendReceiver(
         Handlers.forReceiver(demux.getInput(), true));
-    inputPipe.getOutput().appendReceiver(new HandlerImpl<ObjectNode>() {
+    inputPipe.getOutput().appendReceiver(new Receiver<ObjectNode>() {
       @Override
-      public boolean handle(ObjectNode value) {
+      public boolean receive(ObjectNode value) {
         addOutput("*** UNEXPECTED MESSAGE: " + value);
         return true;
       }
@@ -87,9 +85,9 @@ public class ChatClientGui extends JFrame {
   static final Pattern CONNECT_PATTERN =
       Pattern.compile("^(\\w+)?(?::(\\d{1,5}))?$");
 
-  protected final Handler<ObjectNode> handleSaid = new HandlerImpl<ObjectNode>() {
+  protected final Receiver<ObjectNode> handleSaid = new Receiver<ObjectNode>() {
     @Override
-    public boolean handle(ObjectNode msg) {
+    public boolean receive(ObjectNode msg) {
       JsonNode args = msg.path("arg");
       JsonNode who = args.path("who");
       JsonNode what = args.path("what");

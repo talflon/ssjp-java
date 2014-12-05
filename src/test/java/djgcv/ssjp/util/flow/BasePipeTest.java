@@ -22,7 +22,7 @@ public abstract class BasePipeTest extends ExecutorShopBase {
       Pipe<String> pipe = createPipe();
       List<Future<String>> futures = Lists.newArrayList();
       for (int i = 0; i < numReceivers; i++) {
-        FutureHandler<String> future = new FutureHandler<String>();
+        FutureReceiver<String> future = new FutureReceiver<String>();
         futures.add(future);
         pipe.getOutput().appendReceiver(future);
       }

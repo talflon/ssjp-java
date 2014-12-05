@@ -7,8 +7,7 @@ import java.util.concurrent.Executor;
 
 import djgcv.ssjp.util.RecurringTask;
 
-public class ConcurrentPipe<T> extends
-    AbstractGenericPipe<T, Receiver<? super T>> implements Pipe<T> {
+public class ConcurrentPipe<T> extends AbstractPipe<T> {
   private final Deque<T> queue = new ArrayDeque<T>();
   private final Executor executor;
 
@@ -46,8 +45,9 @@ public class ConcurrentPipe<T> extends
 
   private final Receiver<T> input = new Receiver<T>() {
     @Override
-    public void receive(T value) {
+    public boolean receive(T value) {
       addQueue(value);
+      return true;
     }
   };
 

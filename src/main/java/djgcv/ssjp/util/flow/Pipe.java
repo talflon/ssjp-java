@@ -1,5 +1,7 @@
 package djgcv.ssjp.util.flow;
 
-public interface Pipe<T> extends GenericPipe<T, Receiver<? super T>> {
+public interface Pipe<T> {
+  Receiver<? super T> getInput();
 
+  ReceiverList<T> getOutput();
 }

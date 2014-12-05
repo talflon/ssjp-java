@@ -5,5 +5,5 @@ import djgcv.ssjp.util.SafeCloseable;
 public interface Endpoint<T> extends SafeCloseable {
   Receiver<? super T> getInput();
 
-  ReceiverList<Handler<? super T>> getOutput();
+  ReceiverList<T> getOutput();
 }

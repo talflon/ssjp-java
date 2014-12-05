@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 import djgcv.ssjp.util.ExecutorShopBase;
-import djgcv.ssjp.util.flow.FutureHandler;
+import djgcv.ssjp.util.flow.FutureReceiver;
 import djgcv.ssjp.util.flow.Handlers;
 import djgcv.ssjp.util.flow.Receiver;
 
@@ -74,11 +74,12 @@ public class SocketServerTest extends ExecutorShopBase {
     final JsonNode response = new TextNode("thank you for your inquiry");
     demux.getOutput().appendReceiver(Handlers.forReceiver(new Receiver<ObjectNode>() {
       @Override
-      public void receive(ObjectNode value) {
-        demux.getInput().receive(Messages.response(mapper, response, value.get("tag")));
+      public boolean receive(ObjectNode value) {
+        return demux.getInput().receive(
+            Messages.response(mapper, response, value.get("tag")));
       }
     }, true));
-    FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
+    FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     client.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", "hey_guys"));
     assertEquals(response, result.get(2, TimeUnit.SECONDS).get("rsp"));
@@ -88,7 +89,7 @@ public class SocketServerTest extends ExecutorShopBase {
   public void testSend() throws Exception {
     waitClientConnect();
     String request = "hey_guys";
-    FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
+    FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     demux.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", request));
     assertEquals(request, result.get(2, TimeUnit.SECONDS).get("req").asText());

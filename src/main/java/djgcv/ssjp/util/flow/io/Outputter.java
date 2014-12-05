@@ -7,10 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import djgcv.ssjp.util.SafeCloseableImpl;
-import djgcv.ssjp.util.flow.Handler;
+import djgcv.ssjp.util.flow.Receiver;
 
 public abstract class Outputter<T> extends SafeCloseableImpl implements
-    Handler<T> {
+    Receiver<T> {
   static final Logger log = LoggerFactory.getLogger(Outputter.class);
 
   private final OutputStream outputStream;
@@ -33,7 +33,7 @@ public abstract class Outputter<T> extends SafeCloseableImpl implements
   }
 
   @Override
-  public boolean handle(T value) {
+  public boolean receive(T value) {
     try {
       outputValue(value);
       getOutputStream().flush();
@@ -42,11 +42,6 @@ public abstract class Outputter<T> extends SafeCloseableImpl implements
       handleError(value, e);
       return false;
     }
-  }
-
-  @Override
-  public void receive(T value) {
-    handle(value);
   }
 
   protected void handleError(T value, IOException e) {

@@ -14,7 +14,7 @@ import djgcv.ssjp.util.flow.ReceiverListImpl;
 public abstract class Inputter<T> extends SafeCloseableImpl {
   static final Logger log = LoggerFactory.getLogger(Inputter.class);
 
-  private final ReceiverListImpl<T, Receiver<? super T>> receiverList = new ReceiverListImpl<T, Receiver<? super T>>();
+  private final ReceiverList<T> receiverList = new ReceiverListImpl<T>();
   private final InputStream inputStream;
   private final boolean manageInputStream;
 
@@ -27,7 +27,7 @@ public abstract class Inputter<T> extends SafeCloseableImpl {
     return inputStream;
   }
 
-  public ReceiverList<Receiver<? super T>> getReceiverList() {
+  public ReceiverList<T> getReceiverList() {
     return receiverList;
   }
 

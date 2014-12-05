@@ -1,11 +1,11 @@
 package djgcv.ssjp.util.flow;
 
-public interface ReceiverList<R extends Receiver<?>> {
-  void appendReceiver(R receiver);
+public interface ReceiverList<T> {
+  void appendReceiver(Receiver<? super T> receiver);
 
-  void prependReceiver(R receiver);
+  void prependReceiver(Receiver<? super T>  receiver);
 
-  void removeReceiver(R receiver);
+  void removeReceiver(Receiver<? super T>  receiver);
 
-  Iterable<R> getReceivers();
+  Iterable<Receiver<? super T>> getReceivers();
 }

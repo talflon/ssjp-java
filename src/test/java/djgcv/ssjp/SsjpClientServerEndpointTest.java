@@ -17,7 +17,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import djgcv.ssjp.util.ExecutorShopBase;
 import djgcv.ssjp.util.SafeCloseable;
-import djgcv.ssjp.util.flow.FutureHandler;
+import djgcv.ssjp.util.flow.FutureReceiver;
 import djgcv.ssjp.util.io.SocketPair;
 
 public class SsjpClientServerEndpointTest extends ExecutorShopBase {
@@ -62,7 +62,7 @@ public class SsjpClientServerEndpointTest extends ExecutorShopBase {
     startConnect();
     waitConnected();
     ObjectNode message = mapper.createObjectNode();
-    FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
+    FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     client.getOutput().appendReceiver(result);
     server.getInputFuture().get(5, TimeUnit.SECONDS).receive(message);
     client.getInputFuture().get(2, TimeUnit.SECONDS);

@@ -28,7 +28,7 @@ import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.Timeout;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
 import djgcv.ssjp.util.flow.EndpointImpl;
-import djgcv.ssjp.util.flow.FutureHandler;
+import djgcv.ssjp.util.flow.FutureReceiver;
 import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.Receiver;
 import djgcv.ssjp.util.flow.jackson.JsonObjectInputter;
@@ -163,7 +163,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
 
   protected void sendOurGreeting() {
     log.debug("Sending greeting");
-    outputter.handle(Handshaking.createGreeting(mapper, ourOptions));
+    outputter.receive(Handshaking.createGreeting(mapper, ourOptions));
     afterSending();
   }
 
@@ -177,7 +177,7 @@ abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
   }
 
   protected ListenableFuture<ObjectNode> getTheirGreeting() {
-    final FutureHandler<ObjectNode> result = new FutureHandler<ObjectNode>();
+    final FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     inputter.getReceiverList().appendReceiver(result);
     Futures.addCallback(result, new FutureCallback<ObjectNode>() {
       @Override

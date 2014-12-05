@@ -21,8 +21,9 @@ public class InputterTest {
     final SettableFuture<T> future = SettableFuture.create();
     Receiver<T> receiver = new Receiver<T>() {
       @Override
-      public void receive(T value) {
+      public boolean receive(T value) {
         assertTrue("Received value twice", future.set(value));
+        return true;
       }
     };
     inputter.getReceiverList().appendReceiver(receiver);

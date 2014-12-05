@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.SettableFuture;
 
 public class HandlerMapTest {
 
@@ -31,10 +30,10 @@ public class HandlerMapTest {
     };
   }
 
-  static <T> Handler<T> createDummyHandler(final boolean handles) {
-    return new HandlerImpl<T>() {
+  static <T> Receiver<T> createDummyHandler(final boolean handles) {
+    return new Receiver<T>() {
       @Override
-      public boolean handle(T value) {
+      public boolean receive(T value) {
         return handles;
       }
     };
@@ -43,7 +42,7 @@ public class HandlerMapTest {
   @Test
   public void testGetHandlers() {
     for (int key = 1; key < 5; key++) {
-      ReceiverList<Handler<? super String>> handlers = handlerMap.getHandlers(key);
+      ReceiverList<String> handlers = handlerMap.getHandlers(key);
       assertEquals(0, Iterables.size(handlers.getReceivers()));
       handlers.appendReceiver(createDummyHandler(true));
       assertSame(handlers, handlerMap.getHandlers(key));
@@ -53,15 +52,10 @@ public class HandlerMapTest {
   @Test
   public void testHandled() throws Exception {
     for (int key = 1; key < 5; key++) {
-      final SettableFuture<String> result = SettableFuture.create();
-      handlerMap.getHandlers(key).appendReceiver(new HandlerImpl<String>() {
-        @Override
-        public boolean handle(String value) {
-          return result.set(value);
-        }
-      });
+      FutureReceiver<String> result = new FutureReceiver<String>();
+      handlerMap.getHandlers(key).appendReceiver(result);
       String value = Integer.toString(key);
-      assertTrue(handlerMap.handle(value));
+      assertTrue(handlerMap.receive(value));
       assertEquals(value, result.get(0, TimeUnit.SECONDS));
     }
   }
@@ -69,8 +63,8 @@ public class HandlerMapTest {
   @Test
   public void testUnhandled() throws Exception {
     for (int key = 1; key < 5; key++) {
-      assertFalse(handlerMap.handle(Integer.toString(key)));
+      assertFalse(handlerMap.receive(Integer.toString(key)));
     }
-    assertFalse(handlerMap.handle("blah"));
+    assertFalse(handlerMap.receive("blah"));
   }
 }

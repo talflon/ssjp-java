@@ -10,18 +10,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import djgcv.ssjp.util.flow.Handler;
-import djgcv.ssjp.util.flow.HandlerImpl;
 import djgcv.ssjp.util.flow.Nodes;
+import djgcv.ssjp.util.flow.Receiver;
 
 public class MessageIdDemuxTest {
   @Test
   public void testSendRequest() throws Exception {
     final ObjectMapper mapper = new ObjectMapper();
     final MessageIdDemux demux = new MessageIdDemux();
-    Handler<ObjectNode> echoServer = new HandlerImpl<ObjectNode>() {
+    Receiver<ObjectNode> echoServer = new Receiver<ObjectNode>() {
       @Override
-      public boolean handle(ObjectNode message) {
+      public boolean receive(ObjectNode message) {
         demux.getInput().receive(Messages.response(mapper, message.get("arg"),
             message.get("tag")));
         return true;

@@ -25,7 +25,7 @@ public class OutputterTest {
       }
     };
     byte value = '9';
-    assertTrue(outputter.handle(value));
+    assertTrue(outputter.receive(value));
     assertArrayEquals(new byte[] { value }, bytesOut.toByteArray());
   }
 
@@ -40,7 +40,7 @@ public class OutputterTest {
       }
     };
     byte value = 'm';
-    assertTrue(outputter.handle(value));
+    assertTrue(outputter.receive(value));
     assertArrayEquals(new byte[] { value }, bytesOut.toByteArray());
   }
 
@@ -63,7 +63,7 @@ public class OutputterTest {
       }
     };
     byte value = '$';
-    assertFalse(outputter.handle(value));
+    assertFalse(outputter.receive(value));
     assertEquals(ioException, result.get(1, TimeUnit.SECONDS));
     assertEquals((Byte) value, attempted.get(1, TimeUnit.SECONDS));
   }

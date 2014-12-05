@@ -5,7 +5,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 public final class Nodes {
   public static <T> ListenableFuture<T> sendRequest(Node<T> node, T message) {
-    FutureHandler<T> response = new FutureHandler<T>();
+    FutureReceiver<T> response = new FutureReceiver<T>();
     final Endpoint<T> conn = node.connect();
     conn.getOutput().appendReceiver(response);
     response.addListener(new Runnable() {

@@ -3,21 +3,21 @@ package djgcv.ssjp.util.flow;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Handlers {
-  public static <T> boolean tryHandle(Iterable<Handler<? super T>> handlers, T value) {
-    for (Handler<? super T> handler : handlers) {
-      if (handler.handle(value)) {
+  public static <T> boolean tryHandle(Iterable<Receiver<? super T>> handlers, T value) {
+    for (Receiver<? super T> handler : handlers) {
+      if (handler.receive(value)) {
         return true;
       }
     }
     return false;
   }
 
-  public static <T> Handler<T> forReceiver(Receiver<? super T> receiver,
+  public static <T> Receiver<T> forReceiver(Receiver<? super T> receiver,
       boolean considerHandled) {
     return new ForReceiver<T>(receiver, considerHandled);
   }
 
-  public static class ForReceiver<T> implements Handler<T> {
+  public static class ForReceiver<T> implements Receiver<T> {
     private final Receiver<? super T> receiver;
     private final boolean considerHandled;
 
@@ -27,12 +27,7 @@ public final class Handlers {
     }
 
     @Override
-    public void receive(T value) {
-      receiver.receive(value);
-    }
-
-    @Override
-    public boolean handle(T value) {
+    public boolean receive(T value) {
       receiver.receive(value);
       return considerHandled;
     }
