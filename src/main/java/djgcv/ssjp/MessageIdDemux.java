@@ -4,10 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import djgcv.ssjp.util.flow.Demux;
+import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.Receiver;
 
 public class MessageIdDemux extends Demux<Integer, ObjectNode> {
   private int nextId = 0;
+
+  public MessageIdDemux(Pipe<ObjectNode> outputPipe) {
+    super(outputPipe);
+  }
+
+  public MessageIdDemux() {
+    super();
+  }
 
   @Override
   protected synchronized Integer getNextKey() {

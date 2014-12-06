@@ -12,12 +12,12 @@ import com.google.common.io.BaseEncoding;
 import djgcv.ssjp.util.RandomSource;
 import djgcv.ssjp.util.ThreadLocalRandomSource;
 import djgcv.ssjp.util.flow.Endpoint;
-import djgcv.ssjp.util.flow.EndpointImpl;
+import djgcv.ssjp.util.flow.PipedOutputEndpoint;
 import djgcv.ssjp.util.flow.HandlerPipe;
 import djgcv.ssjp.util.flow.Pipe;
 import djgcv.ssjp.util.flow.Receiver;
 
-public class IdentifierEndpoint extends EndpointImpl<ObjectNode> {
+public class IdentifierEndpoint extends PipedOutputEndpoint<ObjectNode> {
   public static final String PATH = "ssjp.iden";
   public static final int NUM_BITS = 96;
   public static final int NUM_CHARS = NUM_BITS / 6;

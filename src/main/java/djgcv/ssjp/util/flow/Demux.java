@@ -7,8 +7,16 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 
 import djgcv.ssjp.util.SafeCloseable;
 
-public abstract class Demux<K, T> extends EndpointImpl<T> implements Node<T> {
+public abstract class Demux<K, T> extends PipedOutputEndpoint<T> implements Node<T> {
   private final Map<K, Connection> connections = Maps.newHashMap();
+
+  protected Demux(Pipe<T> outputPipe) {
+    super(outputPipe);
+  }
+
+  protected Demux() {
+    super();
+  }
 
   @Override
   public synchronized Connection connect() {
@@ -23,6 +31,10 @@ public abstract class Demux<K, T> extends EndpointImpl<T> implements Node<T> {
 
   protected abstract K getNextKey();
 
+  protected Pipe<T> createConnectionOutputPipe() {
+    return new ListenerPipe<T>();
+  }
+
   protected synchronized Connection getConnection(K key) {
     return connections.get(key);
   }
@@ -33,11 +45,12 @@ public abstract class Demux<K, T> extends EndpointImpl<T> implements Node<T> {
     }
   }
 
-  protected class Connection extends EndpointImpl<T> {
+  protected class Connection extends PipedOutputEndpoint<T> {
     protected final K key;
     private final Receiver<T> input;
 
     Connection(K key) {
+      super(createConnectionOutputPipe());
       this.key = key;
       input = new Receiver<T>() {
         @Override

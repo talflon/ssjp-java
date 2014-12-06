@@ -27,9 +27,9 @@ import com.google.common.util.concurrent.SettableFuture;
 import djgcv.ssjp.util.ExecutorShop;
 import djgcv.ssjp.util.Timeout;
 import djgcv.ssjp.util.flow.ConcurrentPipe;
-import djgcv.ssjp.util.flow.EndpointImpl;
 import djgcv.ssjp.util.flow.FutureReceiver;
 import djgcv.ssjp.util.flow.Pipe;
+import djgcv.ssjp.util.flow.PipedOutputEndpoint;
 import djgcv.ssjp.util.flow.Receiver;
 import djgcv.ssjp.util.flow.jackson.JsonObjectInputter;
 import djgcv.ssjp.util.flow.jackson.JsonObjectOutputter;
@@ -37,8 +37,8 @@ import djgcv.ssjp.util.io.ActivityCallbackInputStream;
 import djgcv.ssjp.util.io.ActivityCallbackOutputStream;
 import djgcv.ssjp.util.io.ActivityCallbackStream;
 
-abstract class BaseSsjpEndpoint extends EndpointImpl<ObjectNode> implements
-    SsjpEndpoint {
+abstract class BaseSsjpEndpoint extends PipedOutputEndpoint<ObjectNode>
+    implements SsjpEndpoint {
   static final Logger log = LoggerFactory.getLogger(BaseSsjpEndpoint.class);
 
   private final ObjectMapper mapper;
