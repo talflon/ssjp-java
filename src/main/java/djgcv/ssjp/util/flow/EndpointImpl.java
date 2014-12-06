@@ -1,8 +1,6 @@
 package djgcv.ssjp.util.flow;
 
-import djgcv.ssjp.util.SafeCloseableImpl;
-
-public abstract class EndpointImpl<T> extends SafeCloseableImpl implements Endpoint<T> {
+public abstract class EndpointImpl<T> extends AbstractEndpoint<T> {
   private final Pipe<T> outputPipe = new ListenerPipe<T>();
 
   @Override
