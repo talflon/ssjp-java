@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,7 +40,7 @@ public class IdentifierEndpointTest {
       child.getInput().receive(Messages.request(mapper,
           IdentifierEndpoint.PATH, "iden?"));
       ObjectNode response = result.get(1, TimeUnit.SECONDS);
-      return response.get("rsp").get("iden").asText();
+      return response.get("rsp").get("iden").textValue();
     } finally {
       child.getOutput().removeReceiver(result);
     }
@@ -53,12 +52,7 @@ public class IdentifierEndpointTest {
     try {
       child.getInput().receive(Messages.request(mapper, "a.b.c", "yo"));
       ObjectNode request = result.get(1, TimeUnit.SECONDS);
-      JsonNode iden = request.path("tag").path("iden");
-      if (iden.isTextual()) {
-        return iden.asText();
-      } else {
-        return null;
-      }
+      return request.path("tag").path("iden").textValue();
     } finally {
       identifier.getOutput().removeReceiver(result);
     }

@@ -47,15 +47,15 @@ public class ChatServer {
   protected final Receiver<ObjectNode> nickHandler = new Receiver<ObjectNode>() {
     @Override
     public boolean receive(ObjectNode msg) {
-      JsonNode nickNode = msg.path("arg").get("nick");
-      if (nickNode == null || !nickNode.isTextual()) {
+      String nick = msg.path("arg").path("nick").textValue();
+      if (nick == null) {
         return false;
       }
-      JsonNode idNode = msg.path("tag").get("id");
-      if (idNode == null || !idNode.isInt()) {
+      JsonNode idNode = msg.path("tag").path("id");
+      if (!idNode.isInt()) {
         return false;
       }
-      if (setNick(nickNode.asText(), idNode.asInt())) {
+      if (setNick(nick, idNode.asInt())) {
         clientDemux.getInput().receive(Messages.response(
             mapper,
             mapper.createObjectNode()
@@ -76,15 +76,15 @@ public class ChatServer {
   protected final Receiver<ObjectNode> saidHandler = new Receiver<ObjectNode>() {
     @Override
     public boolean receive(ObjectNode msg) {
-      JsonNode saidNode = msg.path("arg").get("what");
-      if (saidNode == null || !saidNode.isTextual()) {
+      String said = msg.path("arg").path("what").textValue();
+      if (said == null) {
         return false;
       }
-      JsonNode idNode = msg.path("tag").get("id");
-      if (idNode == null || !idNode.isInt()) {
+      JsonNode idNode = msg.path("tag").path("id");
+      if (!idNode.isInt()) {
         return false;
       }
-      propagateSaid(saidNode.asText(), idNode.asInt());
+      propagateSaid(said, idNode.asInt());
       return true;
     }
   };

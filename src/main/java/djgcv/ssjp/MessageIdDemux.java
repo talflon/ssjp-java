@@ -45,8 +45,8 @@ public class MessageIdDemux extends Demux<Integer, ObjectNode> {
   private final Receiver<ObjectNode> inputHandler = new Receiver<ObjectNode>() {
     @Override
     public boolean receive(ObjectNode message) {
-      JsonNode tag = message.get("tag");
-      JsonNode idNode = tag.get("id");
+      JsonNode tag = message.path("tag");
+      JsonNode idNode = tag.path("id");
       if (idNode.isInt()) {
         Demux<?, ObjectNode>.Connection connection = getConnection(idNode.asInt());
         if (connection != null) {

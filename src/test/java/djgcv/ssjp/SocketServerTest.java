@@ -91,6 +91,6 @@ public class SocketServerTest extends ExecutorShopBase {
     FutureReceiver<ObjectNode> result = new FutureReceiver<ObjectNode>();
     demux.getOutput().appendReceiver(result);
     client.getInput().receive(Messages.request(mapper, "com.org.net", request));
-    assertEquals(request, result.get(2, TimeUnit.SECONDS).get("req").asText());
+    assertEquals(request, result.get(2, TimeUnit.SECONDS).get("req").textValue());
   }
 }

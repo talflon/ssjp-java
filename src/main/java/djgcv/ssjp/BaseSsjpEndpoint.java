@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -169,9 +168,9 @@ abstract class BaseSsjpEndpoint extends PipedOutputEndpoint<ObjectNode>
 
   protected void checkTheirGreeting(ObjectNode greeting) throws Exception {
     log.debug("Checking received greeting: " + greeting);
-    JsonNode version = greeting.get("ssjp");
-    if (!(version != null && version.isTextual() && Handshaking.SSJP_VERSION
-        .equals(version.asText()))) {
+    greeting.path("ssjp").textValue();
+    String version = greeting.path("ssjp").textValue();
+    if (!Handshaking.SSJP_VERSION.equals(version)) {
       throw new Exception("Bad version: " + version); // TODO type?
     }
   }
